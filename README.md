@@ -4,7 +4,7 @@ An agentic AI mortgage assistant with a production-grade evaluation framework. B
 
 ## What It Does
 
-- **Mortgage Assistant App** — React + FastAPI + LangGraph agent answers mortgage questions, checks loan eligibility, and processes documents using RAG over mortgage guidelines.
+- **Mortgage Assistant App** — React + FastAPI + LangGraph agent answers mortgage questions, checks loan eligibility, and processes documents using RAG over mortgage guidelines using Qdrant vector search.
 - **Eval Framework** — DeepEval (faithfulness, hallucination, tool-call accuracy) + Playwright E2E + Locust load testing + Lighthouse performance + MLflow experiment tracking with a CI gate.
 
 ## Live URLs
@@ -38,7 +38,7 @@ docker compose up --build
 | Frontend | React 18 + TypeScript + Vite + TailwindCSS |
 | Backend | FastAPI + Python 3.12 (uv) + Pydantic v2 |
 | Agent | LangGraph + LangChain + OpenAI GPT-3.5-turbo |
-| RAG | ChromaDB + OpenAI embeddings |
+| RAG | Qdrant + OpenAI embeddings |
 | Database | PostgreSQL 15 + Redis 7 |
 | Eval | DeepEval + MLflow + Playwright + Locust + Lighthouse CI |
 | Infra | Docker Compose + Nginx + GitHub Actions |
@@ -46,7 +46,7 @@ docker compose up --build
 ## Project Structure
 
 ```
-mortgage-platform/
+mortgage-eval/
 ├── frontend/          # React 18 + TypeScript (Vite)
 ├── backend/           # FastAPI + uv (Python 3.12)
 ├── test-dashboard/    # React score-card app
@@ -103,7 +103,7 @@ See [.env.example](.env.example) for all required variables. Never commit `.env`
 
 - **Mock-first, then real** — backend starts with mock endpoints (Section 03) before wiring the LangGraph agent (Section 04), so the eval suite can run against known-good responses first.
 - **CI gate via MLflow** — individual test runners use `|| true`; only `ci_gate.py` reads MLflow metrics and calls `sys.exit(1)` on threshold failure, keeping the pipeline unblocked while individual test failures surface clearly.
-- **ChromaDB chunk size = 512 tokens** — fixed to match the eval harness; any change requires an entry in `docs/eval_decisions.md` and a re-run of `test_rag_quality.py`.
+- **Qdrant chunk size = 512 tokens** — fixed to match the eval harness; any change requires an entry in `docs/eval_decisions.md` and a re-run of `test_rag_quality.py`.
 
 ## Build Status
 
