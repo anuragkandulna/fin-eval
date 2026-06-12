@@ -21,7 +21,7 @@ Each section ends with a checklist — don't proceed until all items are checked
 | 02 | Monorepo scaffold | Folder structure + Docker Compose + env files | 1-2 hrs |
 | 03 | Backend — FastAPI | All endpoints + Pydantic schemas + DB setup | 3-4 hrs |
 | 04 | Backend — LangGraph agent | State machine + nodes + tools + prompts | 4-5 hrs |
-| 05 | Backend — RAG pipeline | ChromaDB + ingest + retriever | 2-3 hrs |
+| 05 | Backend — RAG pipeline | Qdrant + ingest + retriever | 2-3 hrs |
 | 06 | Frontend — React app | Chat UI + Loan form + Doc upload | 3-4 hrs |
 | 07 | Synthetic data | PII-safe test case generator (30 cases) | 1-2 hrs |
 | 08 | Eval — DeepEval | RAG + hallucination + tool call + reasoning tests | 3-4 hrs |
@@ -42,7 +42,8 @@ Each section ends with a checklist — don't proceed until all items are checked
 |-----|------|
 | app.domain.com | Live mortgage assistant app |
 | test.domain.com | Test dashboard + manual trigger |
-| mlflow.domain.com | MLflow experiment tracking |
+| mlflow.domain.com | MLflow experiment tracking (score trends across prompt versions) |
+| trace.domain.com | Langfuse agent traces (per-request node/LLM/latency breakdown) |
 | yourusername.github.io/mortgageeval | Permanent eval reports (GitHub Pages) |
 
 ---
@@ -51,9 +52,10 @@ Each section ends with a checklist — don't proceed until all items are checked
 
 ```
 Frontend:    React 18 + TypeScript + Vite + TailwindCSS + Axios
-Backend:     FastAPI + Python 3.11 + Pydantic v2 + SQLAlchemy
+Backend:     FastAPI + Python 3.12 + Pydantic v2 + SQLAlchemy
 Agent:       LangGraph + LangChain + OpenAI GPT-3.5-turbo
-RAG:         ChromaDB + LangChain text splitter + OpenAI embeddings
+RAG:         Qdrant + LangChain text splitter + OpenAI embeddings
+Tracing:     Langfuse (self-hosted, per-request agent traces)
 Database:    PostgreSQL + Redis
 Eval:        DeepEval + MLflow + Playwright + Locust + Lighthouse CI
 Infra:       Docker + Docker Compose + Nginx + Certbot (SSL)

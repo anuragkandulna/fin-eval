@@ -96,7 +96,6 @@ __pycache__/
 *.pyo
 .pytest_cache/
 .deepeval/
-chroma_db/
 
 # Node
 node_modules/
@@ -137,6 +136,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql   # creates mlflow + langfuse DBs
     ports:
       - "5432:5432"
     healthcheck:
@@ -155,6 +155,14 @@ services:
       timeout: 5s
       retries: 5
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
   backend:
     build: ./backend
     ports:
@@ -165,8 +173,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      qdrant:
+        condition: service_started
     volumes:
-      - chroma_data:/app/chroma_db
+      - ./evals/reports:/app/reports
     restart: unless-stopped
 
   frontend:
@@ -190,7 +200,7 @@ services:
   mlflow:
     image: python:3.11-slim
     command: >
-      bash -c "pip install mlflow psycopg2-binary boto3 -q &&
+      bash -c "pip install mlflow psycopg2-binary -q &&
                mlflow server
                --backend-store-uri postgresql://${DB_USER}:${DB_PASSWORD}@postgres/mlflow
                --default-artifact-root /mlflow/artifacts
@@ -205,10 +215,36 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  langfuse:
+    image: langfuse/langfuse:latest
+    ports:
+      - "3002:3000"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/langfuse
+      - NEXTAUTH_URL=https://trace.${DOMAIN}
+      - NEXTAUTH_SECRET=${LANGFUSE_SECRET}
+      - SALT=${LANGFUSE_SALT}
+      - TELEMETRY_ENABLED=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pg_data:
-  chroma_data:
+  qdrant_data:
   mlflow_artifacts:
+```
+
+---
+
+## Step 2.4a — init-db.sql (repo root)
+
+PostgreSQL needs separate databases for MLflow and Langfuse. This file runs automatically on first `docker compose up` via the volume mount above:
+
+```sql
+CREATE DATABASE mlflow;
+CREATE DATABASE langfuse;
 ```
 
 ---
@@ -235,8 +271,16 @@ REDIS_URL=redis://redis:6379
 MLFLOW_TRACKING_URI=http://mlflow:5000
 MLFLOW_EXPERIMENT_NAME=mortgageeval
 
-# ChromaDB
-CHROMA_PERSIST_DIR=/app/chroma_db
+# Qdrant
+QDRANT_URL=http://qdrant:6333
+QDRANT_COLLECTION=mortgage_docs
+
+# Langfuse
+LANGFUSE_SECRET=generate_a_random_32_char_string   # openssl rand -hex 32
+LANGFUSE_SALT=generate_another_random_32_char_string
+LANGFUSE_PUBLIC_KEY=pk-lf-...      # generated after first Langfuse login
+LANGFUSE_SECRET_KEY=sk-lf-...      # generated after first Langfuse login
+LANGFUSE_HOST=http://langfuse:3000
 
 # GitHub (for test dashboard trigger)
 GITHUB_REPO=YOUR_USERNAME/mortgageeval
@@ -316,7 +360,7 @@ deepeval test run deepeval_tests/
 \`\`\`
 
 ## Tech stack
-React · FastAPI · LangGraph · ChromaDB · DeepEval · MLflow ·
+React · FastAPI · LangGraph · Qdrant · DeepEval · MLflow · Langfuse ·
 Playwright · Locust · Lighthouse · Docker · GitHub Actions
 ```
 
@@ -327,10 +371,11 @@ Playwright · Locust · Lighthouse · Docker · GitHub Actions
 - [ ] GitHub repo created (public)
 - [ ] Full folder structure created via scaffold script
 - [ ] `.gitignore` in place
-- [ ] `docker-compose.yml` created
+- [ ] `init-db.sql` created at repo root (Step 2.4a)
+- [ ] `docker-compose.yml` created (includes Qdrant + Langfuse services)
 - [ ] `docker-compose.local.yml` created
-- [ ] `.env.example` committed
-- [ ] `.env` created locally (NOT committed)
+- [ ] `.env.example` committed (includes Qdrant + Langfuse vars)
+- [ ] `.env` created locally (NOT committed) — generate LANGFUSE_SECRET and LANGFUSE_SALT with `openssl rand -hex 32`
 - [ ] `README.md` skeleton written
 - [ ] Initial commit pushed: `git add . && git commit -m "scaffold: initial repo structure" && git push`
 

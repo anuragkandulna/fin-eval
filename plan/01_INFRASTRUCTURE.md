@@ -31,7 +31,7 @@ After purchase, go to **Advanced DNS** settings in Namecheap.
 
 ## Step 1.3 — DNS records
 
-Add these four A records in Namecheap DNS panel.
+Add these five A records in Namecheap DNS panel.
 All point to the same VPS IP:
 
 | Type | Host | Value | TTL |
@@ -39,6 +39,7 @@ All point to the same VPS IP:
 | A | app | YOUR_VPS_IP | Automatic |
 | A | test | YOUR_VPS_IP | Automatic |
 | A | mlflow | YOUR_VPS_IP | Automatic |
+| A | trace | YOUR_VPS_IP | Automatic |
 | A | @ | YOUR_VPS_IP | Automatic |
 
 DNS propagation takes 10-30 minutes.
@@ -137,6 +138,20 @@ server {
         auth_basic_user_file /etc/nginx/.htpasswd;
     }
 }
+
+# trace.domain.com — Langfuse UI
+server {
+    listen 80;
+    server_name trace.domain.com;
+
+    location / {
+        proxy_pass http://localhost:3002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+    }
+}
 ```
 
 Enable the config and test:
@@ -152,11 +167,12 @@ sudo systemctl reload nginx
 ## Step 1.6 — SSL certificates
 
 ```bash
-# Get SSL for all three subdomains in one command
+# Get SSL for all four subdomains in one command
 sudo certbot --nginx \
   -d app.domain.com \
   -d test.domain.com \
   -d mlflow.domain.com \
+  -d trace.domain.com \
   --email your@email.com \
   --agree-tos \
   --non-interactive
@@ -200,10 +216,10 @@ ssh-copy-id -i ~/.ssh/id_ed25519_deploy.pub deploy@YOUR_VPS_IP
 
 - [ ] VPS provisioned and SSH access working
 - [ ] Domain purchased
-- [ ] Four DNS A records created (app, test, mlflow, @)
+- [ ] Five DNS A records created (app, test, mlflow, trace, @)
 - [ ] Docker + Docker Compose installed on VPS
-- [ ] Nginx installed and config created
-- [ ] SSL certificates issued for all three subdomains
+- [ ] Nginx installed and config created (four server blocks)
+- [ ] SSL certificates issued for all four subdomains (app, test, mlflow, trace)
 - [ ] MLflow basic auth password set
 - [ ] Deploy directory created at `/home/deploy/mortgageeval`
 - [ ] GitHub Actions SSH key added to VPS

@@ -25,8 +25,12 @@ langgraph==0.1.1
 openai==1.30.1
 
 # RAG
-chromadb==0.5.0
+qdrant-client==1.9.0
+langchain-qdrant==0.1.0
 tiktoken==0.7.0
+
+# Tracing
+langfuse==2.36.0
 
 # Eval logging
 mlflow==2.13.0
@@ -54,9 +58,15 @@ class Settings(BaseSettings):
     database_url: str
     redis_url: str = "redis://localhost:6379"
     
-    # ChromaDB
-    chroma_persist_dir: str = "./chroma_db"
-    
+    # Qdrant
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection: str = "mortgage_docs"
+
+    # Langfuse
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    langfuse_host: str = "http://localhost:3002"
+
     # MLflow
     mlflow_tracking_uri: str = "http://localhost:5000"
     mlflow_experiment_name: str = "mortgageeval"
@@ -93,6 +103,7 @@ class ChatResponse(BaseModel):
     sources: list[str] = []
     tool_calls_made: list[str] = []
     trace_id: str
+    trace_url: str | None = None   # Langfuse deep-link for this request
     eval_scores: Optional[dict] = None
 
 # Loan recommendation

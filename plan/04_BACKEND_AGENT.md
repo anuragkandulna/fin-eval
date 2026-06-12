@@ -197,6 +197,7 @@ Return only the response text, no commentary.
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
+from langfuse.callback import CallbackHandler
 from app.agent.state import MortgageAgentState
 from app.agent.prompts import (
     MORTGAGE_QA_SYSTEM, LOAN_RECOMMENDATION_SYSTEM,
@@ -209,6 +210,19 @@ import structlog
 
 logger = structlog.get_logger()
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, api_key=settings.openai_api_key)
+
+def _langfuse_handler(state: MortgageAgentState) -> CallbackHandler:
+    return CallbackHandler(
+        public_key=settings.langfuse_public_key,
+        secret_key=settings.langfuse_secret_key,
+        host=settings.langfuse_host,
+        trace_id=state["trace_id"],
+        session_id=state["session_id"],
+        metadata={
+            "flow_type": state.get("flow_type", "chat"),
+            "prompt_version": PROMPT_VERSION
+        }
+    )
 
 async def rag_node(state: MortgageAgentState) -> dict:
     """Retrieve relevant document chunks for the user query."""
@@ -272,7 +286,10 @@ async def response_node(state: MortgageAgentState) -> dict:
         user_msg = state["user_query"]
     
     messages = [SystemMessage(content=system), HumanMessage(content=user_msg)]
-    response = await llm.ainvoke(messages)
+    response = await llm.ainvoke(
+        messages,
+        config={"callbacks": [_langfuse_handler(state)]}
+    )
     
     return {
         "final_response": response.content,
@@ -285,7 +302,10 @@ async def guardrail_node(state: MortgageAgentState) -> dict:
         SystemMessage(content=GUARDRAIL_SYSTEM),
         HumanMessage(content=state["final_response"])
     ]
-    result = await llm.ainvoke(messages)
+    result = await llm.ainvoke(
+        messages,
+        config={"callbacks": [_langfuse_handler(state)]}
+    )
     
     return {"final_response": result.content}
 ```
@@ -372,11 +392,15 @@ async def chat(request: ChatRequest):
             "tool_calls_made": []
         })
         
+        langfuse_base = settings.langfuse_host.replace(
+            "http://langfuse:3000", f"https://trace.{settings.domain}"
+        )
         return ChatResponse(
             response=result["final_response"],
             sources=result.get("doc_sources", []),
             tool_calls_made=result.get("tool_calls_made", []),
-            trace_id=trace_id
+            trace_id=trace_id,
+            trace_url=f"{langfuse_base}/trace/{trace_id}"
         )
     except Exception as e:
         logger.error("chat_error", error=str(e), trace_id=trace_id)
@@ -443,13 +467,21 @@ async def recommend(request: LoanRequest):
 - [ ] `state.py` with full TypedDict defined
 - [ ] `tools.py` — eligibility_checker and rate_fetcher working
 - [ ] `prompts.py` — three prompt templates with version tag
-- [ ] `nodes.py` — all 5 nodes implemented
+- [ ] `nodes.py` — all 5 nodes implemented, Langfuse callback wired into response_node and guardrail_node
 - [ ] `graph.py` — StateGraph compiled with conditional routing
 - [ ] `chat.py` updated to use real agent
 - [ ] `recommend.py` updated to use real agent
 - [ ] Local test: POST `/chat` with "What is the DTI limit for FHA loans?" returns real LLM response
 - [ ] Local test: POST `/recommend` with sample loan data returns rate + eligibility
 - [ ] Verify tool_calls_made list shows which nodes ran
-- [ ] Commit: `git commit -m "feat: LangGraph agent with RAG + eligibility + rate tools"`
+- [ ] Langfuse first-time setup:
+  - Visit `https://trace.domain.com` → create account (first user becomes admin)
+  - Create project named "mortgageeval"
+  - Settings → API Keys → Create key pair
+  - Copy `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` into `.env`
+  - `docker compose restart backend`
+- [ ] POST `/chat` → response includes `trace_url` field
+- [ ] Opening `trace_url` in browser shows full agent execution trace (rag_node → response_node → guardrail_node) with per-node latency
+- [ ] Commit: `git commit -m "feat: LangGraph agent with RAG + eligibility + rate tools + Langfuse tracing"`
 
-**Before proceeding:** Both `/chat` and `/recommend` return real LLM responses, not mocks.
+**Before proceeding:** Both `/chat` and `/recommend` return real LLM responses, not mocks. Traces are visible in Langfuse.

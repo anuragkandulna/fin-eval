@@ -1,5 +1,5 @@
 # Section 05 — Backend: RAG Pipeline
-**Goal:** ChromaDB storing mortgage documents, retriever serving relevant chunks to agent
+**Goal:** Qdrant storing mortgage documents, retriever serving relevant chunks to agent
 
 ---
 
@@ -33,7 +33,9 @@ These are all public domain — no PII risk.
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, VectorParams
 from app.config import settings
 import os, structlog
 
@@ -41,41 +43,46 @@ logger = structlog.get_logger()
 
 CHUNK_SIZE = 512        # calibrated — larger chunks hurt faithfulness score
 CHUNK_OVERLAP = 64
+EMBEDDING_DIM = 1536    # text-embedding-3-small / ada-002 dimension
 
-def get_vectorstore():
+def get_vectorstore() -> QdrantVectorStore:
+    client = QdrantClient(url=settings.qdrant_url)
+
+    collections = [c.name for c in client.get_collections().collections]
+    if settings.qdrant_collection not in collections:
+        client.create_collection(
+            collection_name=settings.qdrant_collection,
+            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE)
+        )
+        logger.info("qdrant_collection_created", name=settings.qdrant_collection)
+
     embeddings = OpenAIEmbeddings(api_key=settings.openai_api_key)
-    return Chroma(
-        persist_directory=settings.chroma_persist_dir,
-        embedding_function=embeddings,
-        collection_name="mortgage_docs"
+    return QdrantVectorStore(
+        client=client,
+        collection_name=settings.qdrant_collection,
+        embedding=embeddings
     )
 
 async def ingest_file(file_path: str, doc_id: str) -> int:
-    """Ingest a single file into ChromaDB. Returns chunk count."""
+    """Ingest a single file into Qdrant. Returns chunk count."""
     logger.info("ingesting_file", path=file_path, doc_id=doc_id)
-    
-    if file_path.endswith(".pdf"):
-        loader = PyPDFLoader(file_path)
-    else:
-        loader = TextLoader(file_path)
-    
+
+    loader = PyPDFLoader(file_path) if file_path.endswith(".pdf") else TextLoader(file_path)
     docs = loader.load()
-    
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
         separators=["\n\n", "\n", ".", " "]
     )
     chunks = splitter.split_documents(docs)
-    
-    # Add doc_id to metadata for filtering
+
     for chunk in chunks:
         chunk.metadata["doc_id"] = doc_id
         chunk.metadata["source"] = os.path.basename(file_path)
-    
-    vectorstore = get_vectorstore()
-    vectorstore.add_documents(chunks)
-    
+
+    get_vectorstore().add_documents(chunks)
+
     logger.info("ingested", chunks=len(chunks), doc_id=doc_id)
     return len(chunks)
 
@@ -101,29 +108,24 @@ logger = structlog.get_logger()
 
 TOP_K = 4   # number of chunks to retrieve
 
-async def retrieve_docs(query: str, doc_ids: list[str] = None) -> tuple[list[str], list[str]]:
+async def retrieve_docs(query: str) -> tuple[list[str], list[str]]:
     """
     Retrieve relevant chunks for a query.
     Returns (chunk_texts, source_names)
     """
-    vectorstore = get_vectorstore()
-    
-    search_kwargs = {"k": TOP_K}
-    if doc_ids:
-        search_kwargs["filter"] = {"doc_id": {"$in": doc_ids}}
-    
-    results = vectorstore.similarity_search_with_score(query, **search_kwargs)
-    
-    # Filter by relevance threshold
-    relevant = [(doc, score) for doc, score in results if score < 1.2]
-    
+    results = get_vectorstore().similarity_search_with_score(query, k=TOP_K)
+
+    # Qdrant cosine similarity: HIGHER score = MORE similar (opposite of ChromaDB distance).
+    # Keep results above 0.5 similarity.
+    relevant = [(doc, score) for doc, score in results if score > 0.5]
+
     if not relevant:
         logger.warning("no_relevant_docs", query=query)
         return [], []
-    
+
     texts = [doc.page_content for doc, _ in relevant]
     sources = [doc.metadata.get("source", "unknown") for doc, _ in relevant]
-    
+
     logger.info("retrieved_docs", count=len(texts), query=query[:50])
     return texts, sources
 ```
@@ -135,21 +137,24 @@ async def retrieve_docs(query: str, doc_ids: list[str] = None) -> tuple[list[str
 Add to `main.py` lifespan:
 
 ```python
-from app.rag.ingest import ingest_directory
+from app.rag.ingest import ingest_directory, get_vectorstore
 import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    
-    # Ingest baseline mortgage docs if ChromaDB is empty
+
+    # Ingest baseline mortgage docs if Qdrant collection is empty
     docs_dir = "/app/data/mortgage_docs"
-    chroma_dir = settings.chroma_persist_dir
-    
-    if os.path.exists(docs_dir) and not os.path.exists(f"{chroma_dir}/chroma.sqlite3"):
-        logger.info("ingesting_baseline_docs")
-        await ingest_directory(docs_dir)
-    
+    if os.path.exists(docs_dir):
+        try:
+            count = get_vectorstore().client.count(settings.qdrant_collection).count
+        except Exception:
+            count = 0
+        if count == 0:
+            logger.info("ingesting_baseline_docs")
+            await ingest_directory(docs_dir)
+
     yield
 ```
 
