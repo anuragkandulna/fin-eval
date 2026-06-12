@@ -1,0 +1,19 @@
+version: '3.8'
+
+# Overlay for local development — hot reload for backend and frontend.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.local.yml up
+
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - ENVIRONMENT=local
+
+  frontend:
+    volumes:
+      - ./frontend/src:/app/src
+    command: npm run dev -- --host 0.0.0.0 --port 3000
+    ports:
+      - "3000:3000"

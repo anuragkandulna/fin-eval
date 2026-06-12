@@ -216,3 +216,20 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ── MortgageEval project-specific ──────────────────────────────────────────
+.env.local
+.env.production
+**/.env
+.deepeval/
+chroma_db/
+node_modules/
+.vite/
+evals/reports/
+mlruns/
+mlflow_artifacts/
+.vscode/
+.idea/
+mlflow_server/mlruns/
+# commit uv.lock — uncomment the line below only for shared libraries
+# uv.lock
