@@ -1,0 +1,37 @@
+Mortgage Glossary
+
+APR (Annual Percentage Rate):
+The true cost of borrowing, including the interest rate plus fees such as origination fees, mortgage insurance, and discount points. APR is always equal to or higher than the interest rate. Use APR to compare loans from different lenders accurately.
+
+DTI (Debt-to-Income Ratio):
+Monthly debt payments divided by gross monthly income, expressed as a percentage. Lenders use DTI to assess repayment ability. Example: $2,000 monthly debts / $6,000 monthly income = 33% DTI. Most conventional loans require back-end DTI of 43% or less.
+
+LTV (Loan-to-Value Ratio):
+The loan amount divided by the appraised property value, expressed as a percentage. Example: $320,000 loan / $400,000 value = 80% LTV. Higher LTV means more risk for the lender and may trigger PMI requirements.
+
+PMI (Private Mortgage Insurance):
+Insurance that protects the lender if the borrower defaults on a conventional loan. Required when LTV exceeds 80% (down payment less than 20%). Can be removed once equity reaches 20% of the home's value.
+
+PITI:
+Principal, Interest, Taxes, and Insurance — the four components of a monthly mortgage payment. Used to calculate front-end DTI ratio. Lenders want PITI to be no more than 28-31% of gross monthly income.
+
+Amortization:
+The process of paying off a loan through scheduled payments over time. Early payments go mostly to interest; later payments go mostly to principal. A 30-year mortgage has 360 amortized monthly payments.
+
+Escrow:
+An account held by the lender to collect and pay property taxes and homeowners insurance on behalf of the borrower. Monthly mortgage payment typically includes an escrow contribution in addition to principal and interest.
+
+Points (Discount Points):
+Fees paid upfront to reduce the interest rate on a mortgage. One point equals 1% of the loan amount. Paying points (buying down the rate) makes sense if you plan to keep the loan long enough to recoup the upfront cost through lower monthly payments.
+
+Pre-approval:
+A lender's written commitment to lend up to a specified amount, based on a full review of income, assets, employment, and credit history. Stronger than pre-qualification. Typically valid for 60-90 days.
+
+Underwriting:
+The process by which a lender evaluates the risk of a loan application. Includes verification of income, assets, employment, credit history, and property appraisal. Results in approval, conditional approval, or denial.
+
+ARM (Adjustable-Rate Mortgage):
+A mortgage with an interest rate that changes periodically after an initial fixed-rate period. A 5/1 ARM has a fixed rate for 5 years, then adjusts annually. Rate caps limit how much the rate can change per adjustment and over the life of the loan.
+
+Refinancing:
+Replacing an existing mortgage with a new one, typically to obtain a lower interest rate, reduce monthly payments, or change loan terms. Closing costs apply and should be weighed against long-term savings.

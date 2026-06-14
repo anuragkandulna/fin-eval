@@ -1,0 +1,36 @@
+FHA Loan Guidelines
+
+Minimum Credit Score Requirements:
+- 580 credit score: eligible for 3.5% minimum down payment
+- 500-579 credit score: eligible with 10% minimum down payment
+- Below 500: not eligible for FHA financing
+
+Debt-to-Income Ratio (DTI) Limits:
+- Front-end DTI (housing expenses only): maximum 31%
+- Back-end DTI (all debts): maximum 43%
+- With compensating factors, lenders may allow up to 50% back-end DTI
+
+Down Payment Requirements:
+- Minimum 3.5% for credit scores 580 and above
+- Minimum 10% for credit scores 500-579
+- Down payment can come from gifts, grants, or approved assistance programs
+
+Bankruptcy and Foreclosure Waiting Periods:
+- Chapter 7 bankruptcy: 2-year waiting period from discharge date
+- Chapter 13 bankruptcy: 1 year of on-time payments required
+- Foreclosure: 3-year waiting period from completion date
+
+FHA Mortgage Insurance:
+- Upfront mortgage insurance premium (UFMIP): 1.75% of loan amount
+- Annual mortgage insurance premium (MIP): 0.55% to 1.05% depending on term and LTV
+- MIP required for the life of the loan if down payment is less than 10%
+
+Employment Requirements:
+- Minimum 2 years of employment history required
+- Self-employed borrowers need 2 years of tax returns
+- Part-time income may be counted with 2-year history
+
+Loan Limits:
+- FHA loan limits vary by county and are set annually by HUD
+- Standard limit for single-family homes in most areas is lower than conventional conforming limits
+- High-cost areas have higher FHA loan limits
