@@ -253,7 +253,7 @@ CREATE DATABASE langfuse;
 
 ```env
 # App
-DOMAIN=yourdomain.com
+DOMAIN=thesceptreai.com
 ENVIRONMENT=production
 
 # OpenAI

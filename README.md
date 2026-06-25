@@ -5,16 +5,14 @@ An agentic AI personal finance assistant with a production-grade evaluation fram
 ## What It Does
 
 - **Finance Assistant App** — React + FastAPI + LangGraph agent answers personal finance questions, checks loan eligibility, and processes documents using RAG over finance guidance documents using Qdrant vector search.
-- **Eval Framework** — DeepEval (faithfulness, hallucination, tool-call accuracy) + Playwright E2E + Locust load testing + Lighthouse performance + MLflow experiment tracking with a CI gate.
+- **Eval Framework** — DeepEval LLM quality metrics + Playwright E2E + load testing + Lighthouse performance.
 
 ## Live URLs
 
 | Service | URL |
 |---------|-----|
-| App | `https://app.yourdomain.com` |
-| Test Dashboard | `https://test.yourdomain.com` |
-| MLflow | `https://mlflow.yourdomain.com` |
-| Eval Reports | `https://anuragkandulna.github.io/fin-eval` |
+| App | `https://app.thesceptreai.com` |
+| Test Reports | `https://anuragkandulna.github.io/fin-eval` |
 
 ## Quick Start (Local)
 
@@ -29,7 +27,6 @@ docker compose up --build
 
 - App: http://localhost:3000
 - API docs: http://localhost:8000/docs
-- MLflow: http://localhost:5000
 
 ## Tech Stack
 
@@ -40,7 +37,7 @@ docker compose up --build
 | Agent | LangGraph + LangChain + OpenAI GPT-4o-mini |
 | RAG | Qdrant Cloud + OpenAI embeddings |
 | Database | Azure PostgreSQL (free tier) + Redis 7 |
-| Eval | DeepEval + MLflow + Playwright + Locust + Lighthouse CI |
+| Eval | DeepEval + Playwright + load tests + Lighthouse CI |
 | Infra | Docker Compose + Nginx + GitHub Actions |
 
 ## Project Structure

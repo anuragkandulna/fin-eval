@@ -41,11 +41,6 @@ async def analyse(request: AnalyseRequest):
             "tool_calls_made":  [],
         })
 
-        langfuse_base = settings.langfuse_host.replace(
-            "http://langfuse:3000", f"https://trace.{settings.domain}"
-        )
-        trace_url = f"{langfuse_base}/trace/{trace_id}" if settings.langfuse_public_key else None
-
         budget  = result.get("budget_result",  {})
         savings = result.get("savings_result", {})
 
@@ -58,7 +53,6 @@ async def analyse(request: AnalyseRequest):
             projected_value=savings.get("projected_value"),
             tool_calls_made=result.get("tool_calls_made", []),
             trace_id=trace_id,
-            trace_url=trace_url,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
