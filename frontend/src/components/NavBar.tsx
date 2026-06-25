@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom'
 
 const links = [
-  { to: '/',         label: 'Chat' },
-  { to: '/analyse',  label: 'Analyse' },
-  { to: '/documents', label: 'Documents' },
+  { to: '/',          label: 'Chat',      testid: 'nav-chat' },
+  { to: '/analyse',   label: 'Analyse',   testid: 'nav-analyse' },
+  { to: '/documents', label: 'Documents', testid: 'nav-documents' },
 ]
 
 export default function NavBar() {
@@ -13,11 +13,12 @@ export default function NavBar() {
         FinEval
       </span>
       <div className="flex gap-6">
-        {links.map(({ to, label }) => (
+        {links.map(({ to, label, testid }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
+            data-testid={testid}
             className={({ isActive }) =>
               `text-sm font-medium transition-colors ${
                 isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'
