@@ -61,11 +61,12 @@ fin-eval/
 └── docker-compose.yml
 ```
 
-## Backend Dev (uv)
+## Python Dev (uv at repo root)
 
 ```bash
+uv sync --all-groups
+
 cd backend
-uv sync
 uv run uvicorn app.main:app --reload
 # API docs at http://localhost:8000/docs
 ```
@@ -82,18 +83,40 @@ npm run dev
 ## Running Evals
 
 ```bash
-cd evals
-pip install -r requirements.txt
+uv sync --all-groups
 
 # DeepEval
-deepeval test run deepeval_tests/ -v
+cd evals
+uv run deepeval test run deepeval_tests/ -v
 
 # Playwright (requires running frontend + backend)
-pytest playwright_tests/ -v
+uv run pytest playwright_tests/ -v
 
 # Load test
-locust -f performance/locustfile.py --host=http://localhost:8000 --headless -u 10 -r 2 --run-time 60s
+uv run locust -f performance/locustfile.py --host=http://localhost:8000 --headless -u 10 -r 2 --run-time 60s
 ```
+
+## Single Container Deploy
+
+Build the production image locally:
+
+```bash
+docker build -t fineval-app .
+docker run --env-file .env -p 8000:8000 fineval-app
+```
+
+For Hostinger VPS deployment, use:
+
+- `Dockerfile`
+- `deploy/hostinger/docker-compose.yml`
+- `.github/workflows/build-and-deploy.yml`
+
+Required GitHub secrets:
+
+- `HOSTINGER_SSH_HOST`
+- `HOSTINGER_SSH_USER`
+- `HOSTINGER_SSH_KEY`
+- `HOSTINGER_DEPLOY_PATH`
 
 ## Environment Variables
 

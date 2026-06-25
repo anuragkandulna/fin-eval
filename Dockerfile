@@ -1,4 +1,15 @@
-FROM python:3.12-slim
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend ./
+RUN npm run build
+
+
+FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
@@ -19,9 +30,15 @@ COPY pyproject.toml uv.lock .python-version ./
 RUN uv sync --frozen --no-dev
 
 COPY backend ./backend
+COPY --from=frontend-builder /app/frontend/dist ./frontend_dist
+COPY deploy/start.sh ./deploy/start.sh
+
+RUN chmod +x ./deploy/start.sh
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/backend"
+ENV PORT=8000
 
 EXPOSE 8000
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+CMD ["./deploy/start.sh"]
