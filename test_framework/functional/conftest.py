@@ -10,8 +10,25 @@ sys.path.insert(0, os.path.dirname(__file__))
 load_dotenv(os.path.join(os.path.dirname(__file__), "../.env.test"))
 
 BASE_URL     = os.getenv("BASE_URL", "http://localhost:3000")
-HEADLESS     = os.getenv("HEADLESS", "true").lower() == "true"
-BROWSER_TYPE = os.getenv("BROWSER", "chromium")
+DEFAULT_HEADLESS = os.getenv("HEADLESS", "true").lower() == "true"
+DEFAULT_BROWSER = os.getenv("BROWSER", "chromium")
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--headless",
+        action="store_true",
+        default=False,
+        help="Run browser tests in headless mode.",
+    )
+
+
+def _resolve_headless(pytestconfig: pytest.Config) -> bool:
+    if pytestconfig.getoption("headed"):
+        return False
+    if pytestconfig.getoption("--headless"):
+        return True
+    return DEFAULT_HEADLESS
 
 
 def pytest_configure(config):
@@ -23,8 +40,13 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def browser_type_name():
-    return BROWSER_TYPE
+def headless_mode(pytestconfig: pytest.Config):
+    return _resolve_headless(pytestconfig)
+
+
+@pytest.fixture(scope="session")
+def browser_type_name(pytestconfig: pytest.Config):
+    return pytestconfig.getoption("browser") or DEFAULT_BROWSER
 
 
 @pytest.fixture(scope="session")
@@ -34,9 +56,9 @@ def playwright_instance():
 
 
 @pytest.fixture(scope="session")
-def browser(playwright_instance, browser_type_name):
+def browser(playwright_instance, browser_type_name, headless_mode):
     launcher = getattr(playwright_instance, browser_type_name)
-    b = launcher.launch(headless=HEADLESS)
+    b = launcher.launch(headless=headless_mode)
     yield b
     b.close()
 

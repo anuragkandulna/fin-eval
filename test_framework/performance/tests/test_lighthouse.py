@@ -20,16 +20,17 @@ THRESHOLDS = {
 }
 
 
-def run_lighthouse(url: str, output_path: str) -> dict:
+def run_lighthouse(url: str, output_path: str, headless_mode: bool) -> dict:
     cmd = [
         "npx", "lighthouse", url,
         f"--port={CDP_PORT}",
         "--output=json",
         f"--output-path={output_path}",
-        "--chrome-flags=--headless",
         "--quiet",
         "--only-categories=performance,accessibility,best-practices",
     ]
+    if headless_mode:
+        cmd.append("--chrome-flags=--headless=new")
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     if not os.path.exists(output_path):
         raise RuntimeError(f"Lighthouse failed for {url}: {result.stderr[:300]}")
@@ -40,7 +41,9 @@ def run_lighthouse(url: str, output_path: str) -> dict:
 @pytest.mark.lighthouse
 class TestLighthousePerformance:
 
-    def test_lighthouse_scores(self, perf_browser, base_url, emitter, iterations):
+    def test_lighthouse_scores(self, perf_browser, base_url, emitter, iterations, headless_mode, browser_type_name):
+        if browser_type_name != "chromium":
+            pytest.skip("Lighthouse tests require Chromium.")
         page = perf_browser
         all_results: dict[str, list] = {}
         os.makedirs("reports/lighthouse", exist_ok=True)
@@ -53,7 +56,7 @@ class TestLighthousePerformance:
 
                 start = time.perf_counter()
                 try:
-                    lh = run_lighthouse(url, output_path)
+                    lh = run_lighthouse(url, output_path, headless_mode)
                 except RuntimeError as e:
                     pytest.skip(f"Lighthouse unavailable: {e}")
                     continue

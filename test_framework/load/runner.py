@@ -5,6 +5,7 @@ Records every request to CSV with timestamp, duration, status.
 Computes p50/p75/p90/p95/p99 from the CSV and generates HTML report.
 """
 
+import argparse
 import asyncio
 import aiohttp
 import csv
@@ -204,9 +205,16 @@ def parse_csv_stats(csv_path: str) -> dict[str, dict]:
 
 
 if __name__ == "__main__":
-    import sys
     from config import LOAD_USERS, LOAD_DURATION
-    users    = int(sys.argv[1]) if len(sys.argv) > 1 else LOAD_USERS
-    duration = int(sys.argv[2]) if len(sys.argv) > 2 else LOAD_DURATION
+
+    parser = argparse.ArgumentParser(description="Run FinEval API load tests.")
+    parser.add_argument("users", nargs="?", type=int, default=LOAD_USERS)
+    parser.add_argument("duration", nargs="?", type=int, default=LOAD_DURATION)
+    parser.add_argument("--users", dest="users_override", type=int, help="Concurrent users override.")
+    parser.add_argument("--duration", dest="duration_override", type=int, help="Duration override in seconds.")
+    args = parser.parse_args()
+
+    users = args.users_override if args.users_override is not None else args.users
+    duration = args.duration_override if args.duration_override is not None else args.duration
     print(f"Load test: {users} users × {duration}s")
     asyncio.run(run_load_tests(users, duration))

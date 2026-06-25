@@ -11,7 +11,7 @@ import sys
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import LOAD_USERS, LOAD_DURATION, P95_THRESHOLD, REPORT_OUTPUT
+from config import P95_THRESHOLD
 from runner import run_load_tests, run_upload_load, parse_csv_stats
 
 try:
@@ -21,9 +21,9 @@ except ImportError:
 
 
 @pytest.fixture(scope="module")
-def load_results():
+def load_results(load_users, load_duration):
     csv_path = asyncio.get_event_loop().run_until_complete(
-        run_load_tests(users=LOAD_USERS, duration_sec=LOAD_DURATION)
+        run_load_tests(users=load_users, duration_sec=load_duration)
     )
     return parse_csv_stats(csv_path)
 
@@ -68,9 +68,9 @@ class TestApiLoad:
 @pytest.mark.load
 class TestUploadLoad:
 
-    def test_upload_under_concurrent_load(self):
+    def test_upload_under_concurrent_load(self, load_users):
         csv_path = asyncio.get_event_loop().run_until_complete(
-            run_upload_load(users=5, duration_sec=20)
+            run_upload_load(users=min(load_users, 5), duration_sec=20)
         )
         stats = parse_csv_stats(csv_path)
         upload_stats = stats.get("upload", {})

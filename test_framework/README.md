@@ -27,6 +27,13 @@ uv run pytest tests/ -v --alluredir=../allure-results
 uv run allure serve ../allure-results        # open live report
 ```
 
+Browser mode options:
+
+```bash
+uv run pytest tests/ -v --headed
+uv run pytest tests/ -v --headless --browser firefox
+```
+
 **Markers**
 
 | Marker       | Description                          |
@@ -53,6 +60,15 @@ uv run pytest tests/test_navigation_perf.py tests/test_upload_perf.py -v
 uv run pytest tests/test_lighthouse.py -m lighthouse -v
 ```
 
+Browser mode options:
+
+```bash
+uv run pytest tests/test_navigation_perf.py -v --headed
+uv run pytest tests/test_lighthouse.py -m lighthouse -v --headless
+```
+
+`Lighthouse` should be run with Chromium.
+
 ## Run load tests
 
 ```bash
@@ -63,6 +79,13 @@ uv run python runner.py 20 60          # 20 concurrent users × 60 seconds
 
 # Or via pytest
 uv run pytest tests/test_api_load.py -v
+```
+
+Load options:
+
+```bash
+uv run python runner.py --users 30 --duration 90
+uv run pytest tests/test_api_load.py -v --users 30 --duration 90
 ```
 
 ## Environment variables (.env.test)

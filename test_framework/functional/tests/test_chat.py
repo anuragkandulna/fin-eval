@@ -79,8 +79,8 @@ class TestChat:
     @allure.title("Multi-browser: chat works on {multi_browser}")
     @pytest.mark.parametrize("multi_browser", ["chromium", "firefox", "webkit"])
     @pytest.mark.regression
-    def test_chat_multi_browser(self, playwright_instance, base_url, multi_browser):
-        browser = getattr(playwright_instance, multi_browser).launch(headless=True)
+    def test_chat_multi_browser(self, playwright_instance, base_url, multi_browser, headless_mode):
+        browser = getattr(playwright_instance, multi_browser).launch(headless=headless_mode)
         ctx  = browser.new_context()
         page = ctx.new_page()
         chat = ChatPage(page, base_url)

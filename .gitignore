@@ -233,3 +233,8 @@ mlflow_artifacts/
 mlflow_server/mlruns/
 # commit uv.lock — uncomment the line below only for shared libraries
 # uv.lock
+test_framework/allure-results/*
+!test_framework/allure-results/.gitkeep
+test_framework/functional/screenshot.png
+test_framework/functional/videos/
+test_framework/**/test-results/
