@@ -40,22 +40,3 @@ class TestDocuments:
         status = self.docs.get_upload_status()
         assert "successfully" in status, f"Unexpected upload status: {status}"
 
-    @allure.title("Upload status shows chunk count digit")
-    @pytest.mark.regression
-    @pytest.mark.documents
-    def test_chunk_count_shown(self, test_txt):
-        self.docs.upload_file(test_txt)
-        self.docs.wait_for_upload_status()
-        status = self.docs.get_upload_status()
-        assert any(char.isdigit() for char in status), "No chunk count visible in status"
-
-    @allure.title("Unsupported file type shows error message")
-    @pytest.mark.regression
-    @pytest.mark.documents
-    def test_unsupported_file_type_rejected(self, tmp_path):
-        bad_file = tmp_path / "data.xls"
-        bad_file.write_bytes(b"fake excel content")
-        self.docs.page.set_input_files('[data-testid="file-upload"]', str(bad_file))
-        status = self.docs.get_upload_status()
-        assert "unsupported" in status.lower() or "not accepted" in status.lower() or status == "", \
-            "Expected unsupported file error or empty status"

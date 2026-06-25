@@ -12,7 +12,6 @@ class ChatResponse(BaseModel):
     sources: list[str] = []
     tool_calls_made: list[str] = []
     trace_id: str
-    trace_url: str | None = None
 
 
 class DebtItem(BaseModel):
@@ -43,7 +42,6 @@ class AnalyseResponse(BaseModel):
     projected_value: float | None = None
     tool_calls_made: list[str] = []
     trace_id: str
-    trace_url: str | None = None
 
 
 class DocumentResponse(BaseModel):

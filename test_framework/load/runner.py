@@ -96,7 +96,8 @@ async def _load_endpoint(
                 asyncio.create_task(_request(session, endpoint_name, config, writer, lock))
                 for _ in range(users)
             ], return_exceptions=True)
-            await asyncio.sleep(0.1)
+            # Pace requests at 1 rps per user so LLM-backed endpoints don't saturate
+            await asyncio.sleep(max(1.0, 1.0 / users))
 
 
 async def _upload_request(

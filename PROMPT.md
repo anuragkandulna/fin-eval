@@ -194,7 +194,7 @@ mlflow_artifacts/
 
 ### .env.example
 ```env
-DOMAIN=yourdomain.com
+DOMAIN=thesceptreai.com
 ENVIRONMENT=production
 OPENAI_API_KEY=sk-...
 DB_USER=fineval

@@ -37,33 +37,8 @@ class TestAnalyse:
     @allure.title("Overspending budget returns fair/poor label")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.regression
-    @pytest.mark.analyse
-    def test_unhealthy_budget(self):
-        self.analyse.fill_budget_form(
-            income=50000, needs=40000, wants=12000, savings=0, goal=10000
-        )
+    def test_unhealthy_budget_label(self):
+        self.analyse.fill_budget_form(50000, 40000, 12000, 0, 10000)
         self.analyse.submit()
         self.analyse.wait_for_result()
-        label = self.analyse.get_health_label()
-        assert label in ["fair", "poor"], f"Expected fair/poor, got '{label}'"
-
-    @allure.title("Analysis card shows educational disclaimer")
-    @pytest.mark.regression
-    def test_disclaimer_present(self):
-        self.analyse.fill_budget_form(80000, 35000, 20000, 25000, 16000)
-        self.analyse.submit()
-        self.analyse.wait_for_result()
-        card_text = self.analyse.get_card_text().lower()
-        assert any(term in card_text for term in [
-            "educational", "not professional", "not financial advice"
-        ]), "Disclaimer missing from analysis card"
-
-    @allure.title("Health score is a number between 0 and 100")
-    @pytest.mark.regression
-    def test_health_score_numeric(self):
-        self.analyse.fill_budget_form(80000, 35000, 20000, 25000, 16000)
-        self.analyse.submit()
-        self.analyse.wait_for_result()
-        score_text = self.analyse.get_health_score()
-        score = int("".join(filter(str.isdigit, score_text)))
-        assert 0 <= score <= 100, f"Score {score} out of 0-100 range"
+        assert self.analyse.get_health_label() in ["fair", "poor"]

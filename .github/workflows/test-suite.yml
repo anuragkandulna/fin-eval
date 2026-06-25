@@ -1,0 +1,250 @@
+name: FinEval Test Suite
+
+on:
+  push:
+    branches: [main, "fea/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12"
+  REPORTS_BRANCH: test-reports
+
+jobs:
+  test-suite:
+    name: Run All Test Suites
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    env:
+      # ── Secrets (configure in repo Settings → Secrets and variables → Actions) ─
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DATABASE_URL:   ${{ secrets.DATABASE_URL }}
+      QDRANT_URL:     ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      # ── Fixed values ──────────────────────────────────────────────────────────
+      REDIS_URL:      redis://localhost:6379
+      BASE_URL:       http://localhost:3000
+      API_URL:        http://localhost:8000
+      EVAL_MODEL:     gpt-4o-mini
+
+    steps:
+      # ── Checkout ─────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── System deps: ODBC Driver 18 (needed by backend aioodbc) ─────────────
+      - name: Install Microsoft ODBC Driver 18
+        run: |
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+            | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+          curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
+            -o /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update -qq
+          sudo ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
+            msodbcsql18 unixodbc-dev
+
+      # ── Python + uv ──────────────────────────────────────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync workspace deps
+        run: uv sync --all-packages
+
+      # ── Playwright browsers ───────────────────────────────────────────────────
+      - name: Install Playwright browsers
+        run: uv run --package test-framework playwright install chromium --with-deps
+
+      # ── Node (for frontend dev server) ───────────────────────────────────────
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci --prefix frontend
+
+      # ── Start backend ─────────────────────────────────────────────────────────
+      - name: Start backend
+        run: |
+          cd backend
+          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          echo "Backend PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/health && echo "Backend ready" && break
+            echo "Waiting... ($i/30)"; sleep 3
+          done
+
+      # ── Start frontend ────────────────────────────────────────────────────────
+      - name: Start frontend
+        run: |
+          npm run dev --prefix frontend &
+          echo "Frontend PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for frontend
+        run: |
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:3000 && echo "Frontend ready" && break
+            echo "Waiting... ($i/20)"; sleep 3
+          done
+
+      # ── SECTION 1: Load tests ─────────────────────────────────────────────────
+      - name: "[Load] Run API load tests"
+        id: load
+        continue-on-error: true
+        working-directory: test_framework/load
+        run: |
+          mkdir -p data reports
+          uv run --package test-framework pytest tests/ -v \
+            --users 5 --duration 15 \
+            --html=reports/load_report.html --self-contained-html \
+            --tb=short 2>&1 | tee load_output.txt
+
+      # ── SECTION 2: Eval tests ─────────────────────────────────────────────────
+      - name: "[Eval] Run LLM quality evals"
+        id: eval
+        continue-on-error: true
+        working-directory: test_framework/eval
+        run: |
+          mkdir -p reports
+          uv run --package test-framework pytest tests/ -v \
+            --html=reports/eval_report.html --self-contained-html \
+            --tb=short 2>&1 | tee eval_output.txt
+
+      # ── SECTION 3: Functional tests (Playwright) ──────────────────────────────
+      - name: "[Functional] Run E2E tests"
+        id: functional
+        continue-on-error: true
+        working-directory: test_framework/functional
+        run: |
+          mkdir -p ../allure-results
+          uv run --package test-framework pytest tests/ -v \
+            --alluredir=../allure-results \
+            --tb=short -m smoke 2>&1 | tee functional_output.txt
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          npm install -g allure-commandline --quiet 2>/dev/null || true
+          allure generate test_framework/allure-results \
+            -o test_framework/allure-report \
+            --clean 2>/dev/null || true
+          # Fallback: copy raw results as report if allure not available
+          if [ ! -d "test_framework/allure-report" ]; then
+            mkdir -p test_framework/allure-report
+            cp test_framework/allure-results/* test_framework/allure-report/ 2>/dev/null || true
+          fi
+
+      # ── SECTION 4: Performance tests ─────────────────────────────────────────
+      - name: "[Performance] Run browser timing tests"
+        id: performance
+        continue-on-error: true
+        working-directory: test_framework/performance
+        run: |
+          mkdir -p data reports
+          uv run --package test-framework pytest tests/test_navigation_perf.py -v \
+            --html=reports/perf_report.html --self-contained-html \
+            --tb=short 2>&1 | tee perf_output.txt
+
+      # ── Collect all reports into a single tree ────────────────────────────────
+      - name: Collect reports
+        if: always()
+        run: |
+          RUN_DIR="fineval/${{ github.run_number }}"
+          mkdir -p \
+            _site/${RUN_DIR}/functional \
+            _site/${RUN_DIR}/performance \
+            _site/${RUN_DIR}/load \
+            _site/${RUN_DIR}/eval
+
+          # functional (allure HTML)
+          cp -r test_framework/allure-report/. _site/${RUN_DIR}/functional/ 2>/dev/null || true
+
+          # performance
+          cp test_framework/performance/reports/*.html \
+             _site/${RUN_DIR}/performance/ 2>/dev/null || true
+
+          # load
+          cp test_framework/load/reports/*.html \
+             _site/${RUN_DIR}/load/ 2>/dev/null || true
+
+          # eval
+          cp test_framework/eval/reports/*.html \
+             _site/${RUN_DIR}/eval/ 2>/dev/null || true
+
+          # index page for this run
+          cat > _site/${RUN_DIR}/index.html <<EOF
+          <!DOCTYPE html><html><head><meta charset="UTF-8">
+          <title>FinEval Run #${{ github.run_number }}</title>
+          <style>body{font-family:system-ui;max-width:600px;margin:40px auto;padding:0 20px}
+          a{display:block;padding:10px;margin:8px 0;background:#f9fafb;border-radius:6px;text-decoration:none;color:#1d4ed8}
+          a:hover{background:#eff6ff}</style></head>
+          <body>
+          <h2>FinEval Test Reports — Run #${{ github.run_number }}</h2>
+          <p>Branch: <code>${{ github.ref_name }}</code> · Commit: <code>${{ github.sha }}</code></p>
+          <a href="functional/">Functional (E2E / Playwright)</a>
+          <a href="performance/">Performance (Browser timing)</a>
+          <a href="load/">Load (API concurrency)</a>
+          <a href="eval/">Eval (LLM quality)</a>
+          </body></html>
+          EOF
+
+      # ── Publish to test-reports branch ───────────────────────────────────────
+      - name: Publish reports to test-reports branch
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: ${{ env.REPORTS_BRANCH }}
+          publish_dir: _site
+          keep_files: true
+          commit_message: "reports: fineval run #${{ github.run_number }} (${{ github.ref_name }})"
+
+      # ── Summary ───────────────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          RUN_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/fineval/${{ github.run_number }}/"
+          echo "## FinEval Test Suite — Run #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Load  | ${{ steps.load.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Eval  | ${{ steps.eval.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functional | ${{ steps.functional.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | ${{ steps.performance.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Reports:** ${RUN_URL}" >> $GITHUB_STEP_SUMMARY
+
+      # ── Fail the job if any required suite failed ─────────────────────────────
+      - name: Assert required suites passed
+        if: always()
+        run: |
+          FAILED=""
+          [ "${{ steps.load.outcome }}" = "failure" ]       && FAILED="$FAILED load"
+          [ "${{ steps.eval.outcome }}" = "failure" ]       && FAILED="$FAILED eval"
+          [ "${{ steps.functional.outcome }}" = "failure" ] && FAILED="$FAILED functional"
+          if [ -n "$FAILED" ]; then
+            echo "The following suites failed:$FAILED"
+            exit 1
+          fi

@@ -1,9 +1,11 @@
+## syntax=docker/dockerfile:1.7
+
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
 COPY frontend/package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY frontend ./
 RUN npm run build
@@ -27,7 +29,7 @@ RUN apt-get update && \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 COPY pyproject.toml uv.lock .python-version ./
-RUN uv sync --frozen --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 
 COPY backend ./backend
 COPY --from=frontend-builder /app/frontend/dist ./frontend_dist

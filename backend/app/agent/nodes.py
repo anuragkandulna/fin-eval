@@ -13,33 +13,6 @@ from app.agent.prompts import (
 from app.agent.tools import budget_analyser, debt_calculator, savings_projector
 from app.rag.retriever import retrieve_docs
 
-try:
-    from langfuse.callback import CallbackHandler
-    _LANGFUSE_AVAILABLE = True
-except ImportError:
-    _LANGFUSE_AVAILABLE = False
-
-
-def _langfuse_handler(state: FinanceAgentState):
-    if not _LANGFUSE_AVAILABLE or not settings.langfuse_public_key:
-        return None
-    return CallbackHandler(
-        public_key=settings.langfuse_public_key,
-        secret_key=settings.langfuse_secret_key,
-        host=settings.langfuse_host,
-        trace_id=state["trace_id"],
-        session_id=state["session_id"],
-        metadata={
-            "flow_type":      state.get("flow_type", "chat"),
-            "prompt_version": PROMPT_VERSION,
-        },
-    )
-
-
-def _invoke_config(state: FinanceAgentState) -> dict:
-    handler = _langfuse_handler(state)
-    return {"callbacks": [handler]} if handler else {}
-
 
 async def rag_node(state: FinanceAgentState) -> dict:
     query = state["user_query"]
@@ -136,7 +109,7 @@ async def response_node(state: FinanceAgentState) -> dict:
             HumanMessage(content=state["user_query"]),
         ]
 
-    response = await llm.ainvoke(messages, config=_invoke_config(state))
+    response = await llm.ainvoke(messages)
     return {
         "final_response":  response.content,
         "tool_calls_made": state.get("tool_calls_made", []) + ["llm_response_v3"],
@@ -149,7 +122,7 @@ async def guardrail_node(state: FinanceAgentState) -> dict:
         SystemMessage(content=GUARDRAIL_SYSTEM),
         HumanMessage(content=state["final_response"]),
     ]
-    result = await llm.ainvoke(messages, config=_invoke_config(state))
+    result = await llm.ainvoke(messages)
     return {
         "final_response":  result.content,
         "tool_calls_made": state.get("tool_calls_made", []) + ["guardrail"],

@@ -1,8 +1,5 @@
 version: '3.8'
 
-# PostgreSQL is hosted on Azure Database for PostgreSQL – Flexible Server (free tier).
-# Set DATABASE_URL and MLFLOW_DB_URL in .env — no local postgres container needed.
-
 services:
   redis:
     image: redis:7-alpine
@@ -45,21 +42,3 @@ services:
       - VITE_BACKEND_URL=http://backend:8000
     restart: unless-stopped
 
-  mlflow:
-    image: python:3.11-slim
-    command: >
-      bash -c "pip install mlflow -q &&
-               mlflow server
-               --backend-store-uri sqlite:////mlflow/data/mlflow.db
-               --default-artifact-root /mlflow/artifacts
-               --host 0.0.0.0 --port 5000"
-    ports:
-      - "5000:5000"
-    volumes:
-      - mlflow_data:/mlflow/data
-      - mlflow_artifacts:/mlflow/artifacts
-    restart: unless-stopped
-
-volumes:
-  mlflow_data:
-  mlflow_artifacts:
