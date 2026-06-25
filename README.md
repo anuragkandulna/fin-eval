@@ -96,6 +96,28 @@ uv run pytest playwright_tests/ -v
 uv run locust -f performance/locustfile.py --host=http://localhost:8000 --headless -u 10 -r 2 --run-time 60s
 ```
 
+## Single Container Deploy
+
+Build the production image locally:
+
+```bash
+docker build -t fineval-app .
+docker run --env-file .env -p 8000:8000 fineval-app
+```
+
+For Hostinger VPS deployment, use:
+
+- `Dockerfile`
+- `deploy/hostinger/docker-compose.yml`
+- `.github/workflows/build-and-deploy.yml`
+
+Required GitHub secrets:
+
+- `HOSTINGER_SSH_HOST`
+- `HOSTINGER_SSH_USER`
+- `HOSTINGER_SSH_KEY`
+- `HOSTINGER_DEPLOY_PATH`
+
 ## Environment Variables
 
 See [.env.example](.env.example) for all required variables. Never commit `.env`.

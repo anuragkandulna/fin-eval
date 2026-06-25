@@ -1,0 +1,9 @@
+services:
+  fineval:
+    image: ghcr.io/${GHCR_OWNER}/${GHCR_IMAGE}:latest
+    container_name: fineval-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:8000"
