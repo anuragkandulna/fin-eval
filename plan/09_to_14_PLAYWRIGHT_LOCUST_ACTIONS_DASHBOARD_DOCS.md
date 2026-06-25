@@ -808,7 +808,7 @@ def build_dashboard():
 </div>
 
 <div class="history">
-  Report history available in the <a href="https://github.com/YOUR_USERNAME/fineval/actions">GitHub Actions runs</a>.
+  Report history available in the <a href="https://github.com/anuragkandulna/fin-eval/actions">GitHub Actions runs</a>.
 </div>
 </body>
 </html>"""
@@ -833,7 +833,7 @@ if __name__ == "__main__":
 - [ ] GitHub Pages enabled: repo Settings → Pages → Branch: `gh-pages`
 - [ ] First full pipeline run: push a small change to main
 - [ ] Check Actions tab — deploy + eval workflows both visible
-- [ ] Check `https://YOUR_USERNAME.github.io/fineval` — dashboard loads
+- [ ] Check `https://anuragkandulna.github.io/fin-eval` — dashboard loads
 - [ ] Commit: `git commit -m "ci: GitHub Actions deploy + eval pipeline + GitHub Pages"`
 
 ---
@@ -855,7 +855,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN
 const PAGES_URL = import.meta.env.VITE_PAGES_URL || 
-  "https://YOUR_USERNAME.github.io/fineval"
+  "https://anuragkandulna.github.io/fin-eval"
 
 interface Scores {
   deepeval: { faithfulness: number; hallucination_rate: number; tool_accuracy: number }
@@ -1126,7 +1126,7 @@ Before applying to jobs, verify all of these:
 - [ ] `https://app.domain.com` — app loads, chat works, finance form works
 - [ ] `https://test.domain.com` — scores load, trigger button works
 - [ ] `https://mlflow.domain.com` — login works, experiments visible
-- [ ] `https://YOUR_USERNAME.github.io/fineval` — dashboard with report links
+- [ ] `https://anuragkandulna.github.io/fin-eval` — dashboard with report links
 
 **GitHub repo**
 - [ ] Public repo with clean commit history

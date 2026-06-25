@@ -44,7 +44,7 @@ Each section ends with a checklist — don't proceed until all items are checked
 | test.domain.com | Test dashboard + manual trigger |
 | mlflow.domain.com | MLflow experiment tracking (score trends across prompt versions) |
 | trace.domain.com | Langfuse agent traces (per-request node/LLM/latency breakdown) |
-| yourusername.github.io/fineval | Permanent eval reports (GitHub Pages) |
+| anuragkandulna.github.io/fin-eval | Permanent eval reports (GitHub Pages) |
 
 ---
 

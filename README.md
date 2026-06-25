@@ -14,7 +14,7 @@ An agentic AI personal finance assistant with a production-grade evaluation fram
 | App | `https://app.yourdomain.com` |
 | Test Dashboard | `https://test.yourdomain.com` |
 | MLflow | `https://mlflow.yourdomain.com` |
-| Eval Reports | `https://YOUR_USERNAME.github.io/fineval` |
+| Eval Reports | `https://anuragkandulna.github.io/fin-eval` |
 
 ## Quick Start (Local)
 
@@ -37,9 +37,9 @@ docker compose up --build
 |-------|-----------|
 | Frontend | React 18 + TypeScript + Vite + TailwindCSS |
 | Backend | FastAPI + Python 3.12 (uv) + Pydantic v2 |
-| Agent | LangGraph + LangChain + OpenAI GPT-3.5-turbo |
-| RAG | Qdrant + OpenAI embeddings |
-| Database | PostgreSQL 15 + Redis 7 |
+| Agent | LangGraph + LangChain + OpenAI GPT-4o-mini |
+| RAG | Qdrant Cloud + OpenAI embeddings |
+| Database | Azure PostgreSQL (free tier) + Redis 7 |
 | Eval | DeepEval + MLflow + Playwright + Locust + Lighthouse CI |
 | Infra | Docker Compose + Nginx + GitHub Actions |
 

@@ -204,7 +204,7 @@ REDIS_URL=redis://redis:6379
 MLFLOW_TRACKING_URI=http://mlflow:5000
 MLFLOW_EXPERIMENT_NAME=fineval
 CHROMA_PERSIST_DIR=/app/chroma_db
-GITHUB_REPO=YOUR_USERNAME/fineval
+GITHUB_REPO=anuragkandulna/fin-eval
 GITHUB_TOKEN=ghp_...
 FAITHFULNESS_THRESHOLD=0.70
 HALLUCINATION_THRESHOLD=0.30
@@ -1711,7 +1711,7 @@ Before considering the project complete:
 - [ ] `https://app.domain.com` — chat works, finance form works, upload works
 - [ ] `https://test.domain.com` — scores load, trigger button works
 - [ ] `https://mlflow.domain.com` — login works, "fineval" experiment visible
-- [ ] `https://YOUR_USERNAME.github.io/fineval` — dashboard with scores loads
+- [ ] `https://anuragkandulna.github.io/fin-eval` — dashboard with scores loads
 - [ ] GitHub Actions: deploy.yml green on push
 - [ ] GitHub Actions: eval.yml green, all 5 test sections run
 - [ ] `docs/findings.md` — at least 3 real findings from running the eval suite

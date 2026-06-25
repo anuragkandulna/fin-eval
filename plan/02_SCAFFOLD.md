@@ -12,7 +12,7 @@
 5. Clone locally:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/fineval.git
+git clone https://github.com/anuragkandulna/fin-eval.git
 cd fineval
 ```
 
@@ -283,7 +283,7 @@ LANGFUSE_SECRET_KEY=sk-lf-...      # generated after first Langfuse login
 LANGFUSE_HOST=http://langfuse:3000
 
 # GitHub (for test dashboard trigger)
-GITHUB_REPO=YOUR_USERNAME/fineval
+GITHUB_REPO=anuragkandulna/fin-eval
 GITHUB_TOKEN=ghp_...
 
 # Eval thresholds
@@ -336,7 +336,7 @@ An agentic AI personal finance assistant with a production-grade eval framework.
 - **App:** https://app.domain.com
 - **Eval Dashboard:** https://test.domain.com
 - **MLflow:** https://mlflow.domain.com
-- **Eval Reports:** https://YOUR_USERNAME.github.io/fineval
+- **Eval Reports:** https://anuragkandulna.github.io/fin-eval
 
 ## What this project demonstrates
 - Agentic AI application (LangGraph + RAG + multi-tool orchestration)
