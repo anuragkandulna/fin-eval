@@ -1,24 +1,24 @@
 # Section 05 — Backend: RAG Pipeline
-**Goal:** Qdrant storing mortgage documents, retriever serving relevant chunks to agent
+**Goal:** Qdrant storing finance documents, retriever serving relevant chunks to agent
 
 ---
 
-## Step 5.1 — Sample mortgage documents
+## Step 5.1 — Sample finance documents
 
-Create `backend/data/mortgage_docs/` and add these as plain text files:
+Create `backend/data/finance_docs/` and add these as plain text files:
 
-**fha_guidelines.txt** — copy key points from HUD FHA guidelines (public domain):
+**budgeting_basics.txt** — copy key points from HUD FHA guidelines (public domain):
 - Minimum credit score requirements
 - Down payment requirements  
 - DTI ratio limits
-- Loan limits by county
+- Finance limits by county
 
-**conventional_loans.txt** — Fannie Mae/Freddie Mac guidelines (public):
-- Conforming loan limits
+**debt_management.txt** — Fannie Mae/Freddie Mac guidelines (public):
+- Conforming finance limits
 - PMI requirements
 - Credit score bands
 
-**mortgage_glossary.txt** — Basic mortgage terms:
+**finance_glossary.txt** — Basic finance terms:
 - APR, DTI, LTV, PMI, PITI definitions
 - Amortization explanation
 - Escrow explanation
@@ -144,8 +144,8 @@ import os
 async def lifespan(app: FastAPI):
     await init_db()
 
-    # Ingest baseline mortgage docs if Qdrant collection is empty
-    docs_dir = "/app/data/mortgage_docs"
+    # Ingest baseline finance docs if Qdrant collection is empty
+    docs_dir = "/app/data/finance_docs"
     if os.path.exists(docs_dir):
         try:
             count = get_vectorstore().client.count(settings.qdrant_collection).count
@@ -190,12 +190,12 @@ async def upload_document(file: UploadFile = File(...)):
 
 ## Section 05 Checklist
 
-- [ ] `data/mortgage_docs/` created with at least 3 text files
+- [ ] `data/finance_docs/` created with at least 3 text files
 - [ ] `ingest.py` working — chunk size set to 512
 - [ ] `retriever.py` returning relevant chunks
 - [ ] Baseline docs ingested on startup
 - [ ] `/documents/upload` using real ChromaDB ingest
-- [ ] Test: POST `/chat` "What is the FHA minimum credit score?" — response cites context
+- [ ] Test: POST `/chat` "What is the 50/30/20 budgeting rule?" — response cites context
 - [ ] Commit: `git commit -m "feat: RAG pipeline with ChromaDB"`
 
 ---
@@ -203,7 +203,7 @@ async def upload_document(file: UploadFile = File(...)):
 ---
 
 # Section 06 — Frontend: React App
-**Goal:** Chat UI + Loan form + Document upload working against real backend
+**Goal:** Chat UI + Finance form + Document upload working against real backend
 
 ---
 
@@ -211,7 +211,7 @@ async def upload_document(file: UploadFile = File(...)):
 
 ```json
 {
-  "name": "mortgageeval-frontend",
+  "name": "fineval-frontend",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
@@ -365,7 +365,7 @@ export default function ChatWindow() {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <p className="text-gray-400 text-center mt-8">
-            Ask a mortgage question to get started
+            Ask a personal finance question to get started
           </p>
         )}
         {messages.map((msg, i) => (
@@ -408,7 +408,7 @@ export default function ChatWindow() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && sendMessage()}
-          placeholder="Ask a mortgage question..."
+          placeholder="Ask a personal finance question..."
           className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
@@ -476,7 +476,7 @@ export default function LoanForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Loan Amount ($)</label>
+          <label className="block text-sm font-medium mb-1">Target Amount ($)</label>
           <input
             data-testid="loan-amount"
             type="number"
@@ -498,7 +498,7 @@ export default function LoanForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Loan Type</label>
+          <label className="block text-sm font-medium mb-1">Finance Category</label>
           <select
             data-testid="loan-type"
             value={form.loan_type}
@@ -539,7 +539,7 @@ export default function LoanForm() {
           <p className="text-2xl font-bold text-blue-600 mb-3">{result.rate}%</p>
           <p className="text-sm text-gray-600">{result.reasoning}</p>
           <p className="text-xs text-gray-400 mt-2">
-            * This is not a formal loan approval. Consult a licensed loan officer.
+            * This is not a formal financial approval. Consult a licensed financial advisor.
           </p>
         </div>
       )}
@@ -589,15 +589,15 @@ server {
 - [ ] `App.tsx` with React Router (routes: /, /loan, /upload)
 - [ ] `Dockerfile` with multi-stage build
 - [ ] Local test: `npm run dev` — chat sends message and gets real response
-- [ ] Local test: loan form returns recommendation card
-- [ ] Commit: `git commit -m "feat: React frontend — chat, loan form, document upload"`
+- [ ] Local test: finance form returns recommendation card
+- [ ] Commit: `git commit -m "feat: React frontend — chat, finance form, document upload"`
 
 ---
 
 ---
 
 # Section 07 — Synthetic Data Generator
-**Goal:** 30 PII-safe mortgage Q&A test cases for DeepEval
+**Goal:** 30 PII-safe finance Q&A test cases for DeepEval
 
 ---
 
@@ -615,16 +615,16 @@ SCENARIOS = [
             "What is the minimum down payment for an FHA loan with a 620 credit score?",
             "What is the maximum DTI ratio allowed for an FHA loan?",
             "Can I get an FHA loan if I had a bankruptcy?",
-            "What are the FHA loan limits?"
+            "What are the FHA finance limits?"
         ],
         "expected_answers": [
             "580 with 3.5% down payment, or 500 with 10% down payment",
             "10% down payment is required for credit scores between 500 and 579; 3.5% for 580+",
             "FHA allows up to 43% DTI, though some lenders allow up to 50% with compensating factors",
             "2 years after Chapter 7 bankruptcy, 1 year after Chapter 13",
-            "FHA loan limits vary by county, set annually by HUD"
+            "FHA finance limits vary by county, set annually by HUD"
         ],
-        "context_file": "fha_guidelines.txt"
+        "context_file": "budgeting_basics.txt"
     },
     {
         "name": "conventional_basics",
@@ -642,33 +642,33 @@ SCENARIOS = [
             "Most lenders prefer a DTI ratio of 36% or lower, maximum 45-50%",
             "3% with certain programs, though 20% avoids PMI"
         ],
-        "context_file": "conventional_loans.txt"
+        "context_file": "debt_management.txt"
     },
     {
-        "name": "mortgage_terms",
+        "name": "finance_terms",
         "questions": [
             "What is APR and how is it different from the interest rate?",
-            "What does LTV mean in mortgage lending?",
+            "What does LTV mean in consumer finance?",
             "What is an escrow account?",
             "What is amortization?",
             "What is PITI?"
         ],
         "expected_answers": [
             "APR includes the interest rate plus fees, giving a more complete cost picture",
-            "LTV is Loan-to-Value ratio — the loan amount divided by the property value",
+            "LTV is Loan-to-Value ratio — the target amount divided by the property value",
             "An escrow account holds funds for property taxes and insurance",
             "Amortization is the gradual payoff of a loan through scheduled payments",
-            "PITI stands for Principal, Interest, Taxes, and Insurance — the four components of a mortgage payment"
+            "PITI stands for Principal, Interest, Taxes, and Insurance — the four components of a financial obligation"
         ],
-        "context_file": "mortgage_glossary.txt"
+        "context_file": "finance_glossary.txt"
     },
     {
         "name": "eligibility_edge_cases",
         "questions": [
-            "Can a self-employed person get a mortgage?",
+            "Can a self-employed person get a finance?",
             "What happens if my credit score is 580?",
             "Is a 50% DTI ratio acceptable?",
-            "Can I get a mortgage with a recent late payment?",
+            "Can I get a finance with a recent late payment?",
             "What if my income is from rental properties?"
         ],
         "expected_answers": [
@@ -678,31 +678,31 @@ SCENARIOS = [
             "Recent late payments negatively impact approval; lenders typically want 12 months of clean payment history",
             "Rental income can count toward qualifying income with documentation"
         ],
-        "context_file": "fha_guidelines.txt"
+        "context_file": "budgeting_basics.txt"
     },
     {
         "name": "loan_comparison",
         "questions": [
-            "What is the difference between a fixed and variable rate mortgage?",
+            "What is the difference between a fixed and variable rate finance?",
             "When is an FHA loan better than a conventional loan?",
-            "What are the pros and cons of a 15-year vs 30-year mortgage?",
+            "What are the pros and cons of a 15-year vs 30-year finance?",
             "What is an ARM loan?",
             "What is a jumbo loan?"
         ],
         "expected_answers": [
-            "Fixed rate stays the same for the loan term; variable rate can change based on market conditions",
+            "Fixed rate stays the same for the investment horizon; variable rate can change based on market conditions",
             "FHA is better for lower credit scores or smaller down payments",
             "15-year has higher payments but less total interest; 30-year has lower payments but more total interest",
-            "ARM stands for Adjustable Rate Mortgage — rate adjusts after an initial fixed period",
-            "A jumbo loan exceeds the conforming loan limits and typically requires better credit and larger down payment"
+            "ARM stands for Adjustable Rate Finance — rate adjusts after an initial fixed period",
+            "A jumbo loan exceeds the conforming finance limits and typically requires better credit and larger down payment"
         ],
-        "context_file": "conventional_loans.txt"
+        "context_file": "debt_management.txt"
     },
     {
         "name": "hallucination_traps",
         # These are designed to test if the agent fabricates specific numbers
         "questions": [
-            "What is the exact current 30-year fixed mortgage rate today?",
+            "What is the exact current 30-year fixed financial rate today?",
             "What will interest rates be next year?",
             "What is the credit score requirement at First National Bank?",
         ],
@@ -911,7 +911,7 @@ from deepeval.test_case import LLMTestCase
 from conftest import invoke_chat
 
 HALLUCINATION_TRAPS = [
-    ("What is the exact mortgage rate at Chase Bank today?",
+    ("What is the exact financial rate at Chase Bank today?",
      ["I don't have current rate data from Chase Bank in the provided documents"]),
     ("What will the Federal Reserve do with rates next month?",
      ["I cannot predict future Federal Reserve decisions"]),
@@ -971,7 +971,7 @@ def test_rag_always_called(client):
         "RAG retrieval was not called"
 
 def test_eligibility_called_for_loan_queries(client):
-    """Eligibility checker must run when loan data is provided."""
+    """Eligibility checker must run when finance data is provided."""
     result = invoke_recommend(client, LOAN_DATA)
     assert "eligibility_checker" in result.get("tool_calls_made", []) or \
            result["eligible"] is not None, \
@@ -984,7 +984,7 @@ def test_rate_fetcher_called_after_eligibility(client):
 
 def test_no_invalid_tool_calls(client):
     """Agent must not call tools that don't exist."""
-    result = invoke_chat(client, "What is a mortgage?")
+    result = invoke_chat(client, "What is personal finance?")
     for call in result.get("tool_calls_made", []):
         assert call in VALID_TOOLS, f"Invalid tool called: {call}"
 
@@ -1022,10 +1022,10 @@ def test_reasoning_consistency(client):
 
 def test_reasoning_quality(client):
     """Response reasoning should be coherent and well-structured."""
-    result = invoke_chat(client, "Should I choose a 15 or 30 year mortgage?")
+    result = invoke_chat(client, "Should I choose a 15 or 30 year finance?")
     
     test_case = LLMTestCase(
-        input="Should I choose a 15 or 30 year mortgage?",
+        input="Should I choose a 15 or 30 year finance?",
         actual_output=result["response"]
     )
     metric = GEval(
@@ -1096,7 +1096,7 @@ PROMPT_VERSION = "v3"
 class EvalTracker:
     def __init__(self):
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-        mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "mortgageeval"))
+        mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "fineval"))
 
     def log_eval_run(self, deepeval_results: dict, playwright_results: dict = None):
         with mlflow.start_run(run_name=f"eval_{datetime.now().strftime('%Y%m%d_%H%M')}"):
@@ -1141,7 +1141,7 @@ def check_ci_gate():
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
     
     runs = mlflow.search_runs(
-        experiment_names=[os.getenv("MLFLOW_EXPERIMENT_NAME", "mortgageeval")],
+        experiment_names=[os.getenv("MLFLOW_EXPERIMENT_NAME", "fineval")],
         order_by=["start_time DESC"],
         max_results=1
     )

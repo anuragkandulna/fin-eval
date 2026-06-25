@@ -1,5 +1,5 @@
-# MortgageEval — Full Build Guide
-**Project:** Agentic AI Mortgage Assistant + Eval Framework  
+# FinEval — Full Build Guide
+**Project:** Agentic AI Personal Finance Assistant + Eval Framework  
 **Target role:** Senior AI QA Engineer · 25-30 LPA  
 **Author:** Anurag Kandulna
 
@@ -22,10 +22,10 @@ Each section ends with a checklist — don't proceed until all items are checked
 | 03 | Backend — FastAPI | All endpoints + Pydantic schemas + DB setup | 3-4 hrs |
 | 04 | Backend — LangGraph agent | State machine + nodes + tools + prompts | 4-5 hrs |
 | 05 | Backend — RAG pipeline | Qdrant + ingest + retriever | 2-3 hrs |
-| 06 | Frontend — React app | Chat UI + Loan form + Doc upload | 3-4 hrs |
+| 06 | Frontend — React app | Chat UI + Budget analyser + Doc upload | 3-4 hrs |
 | 07 | Synthetic data | PII-safe test case generator (30 cases) | 1-2 hrs |
 | 08 | Eval — DeepEval | RAG + hallucination + tool call + reasoning tests | 3-4 hrs |
-| 09 | Eval — Playwright | E2E test scenarios (chat + loan + upload) | 2-3 hrs |
+| 09 | Eval — Playwright | E2E test scenarios (chat + analyse + upload) | 2-3 hrs |
 | 10 | Eval — Locust + Lighthouse | Load tests + frontend quality scores | 1-2 hrs |
 | 11 | MLflow setup | VPS tracking server + logger + CI gate | 2-3 hrs |
 | 12 | GitHub Actions | deploy.yml + eval.yml + gh-pages publish | 2-3 hrs |
@@ -40,11 +40,11 @@ Each section ends with a checklist — don't proceed until all items are checked
 
 | URL | What |
 |-----|------|
-| app.domain.com | Live mortgage assistant app |
+| app.domain.com | Live FinEval personal finance assistant |
 | test.domain.com | Test dashboard + manual trigger |
 | mlflow.domain.com | MLflow experiment tracking (score trends across prompt versions) |
 | trace.domain.com | Langfuse agent traces (per-request node/LLM/latency breakdown) |
-| yourusername.github.io/mortgageeval | Permanent eval reports (GitHub Pages) |
+| yourusername.github.io/fineval | Permanent eval reports (GitHub Pages) |
 
 ---
 
@@ -53,7 +53,7 @@ Each section ends with a checklist — don't proceed until all items are checked
 ```
 Frontend:    React 18 + TypeScript + Vite + TailwindCSS + Axios
 Backend:     FastAPI + Python 3.12 + Pydantic v2 + SQLAlchemy
-Agent:       LangGraph + LangChain + OpenAI GPT-3.5-turbo
+Agent:       LangGraph + LangChain + OpenAI GPT-4o-mini
 RAG:         Qdrant + LangChain text splitter + OpenAI embeddings
 Tracing:     Langfuse (self-hosted, per-request agent traces)
 Database:    PostgreSQL + Redis

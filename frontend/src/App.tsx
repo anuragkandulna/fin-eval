@@ -1,9 +1,23 @@
-function App() {
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import NavBar from './components/NavBar'
+import Chat from './pages/Chat'
+import Analyse from './pages/Analyse'
+import Documents from './pages/Documents'
+
+export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <h1 className="text-3xl font-bold text-gray-800">MortgageEval</h1>
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <main className="max-w-3xl mx-auto px-4 py-6">
+          <Routes>
+            <Route path="/"          element={<Chat />} />
+            <Route path="/analyse"   element={<Analyse />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="*"          element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
   )
 }
-
-export default App

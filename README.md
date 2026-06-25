@@ -1,10 +1,10 @@
-# MortgageEval
+# FinEval
 
-An agentic AI mortgage assistant with a production-grade evaluation framework. Built to demonstrate Senior AI QA Engineer skills.
+An agentic AI personal finance assistant with a production-grade evaluation framework. Built to demonstrate Senior AI QA Engineer skills.
 
 ## What It Does
 
-- **Mortgage Assistant App** — React + FastAPI + LangGraph agent answers mortgage questions, checks loan eligibility, and processes documents using RAG over mortgage guidelines using Qdrant vector search.
+- **Finance Assistant App** — React + FastAPI + LangGraph agent answers personal finance questions, checks loan eligibility, and processes documents using RAG over finance guidance documents using Qdrant vector search.
 - **Eval Framework** — DeepEval (faithfulness, hallucination, tool-call accuracy) + Playwright E2E + Locust load testing + Lighthouse performance + MLflow experiment tracking with a CI gate.
 
 ## Live URLs
@@ -14,7 +14,7 @@ An agentic AI mortgage assistant with a production-grade evaluation framework. B
 | App | `https://app.yourdomain.com` |
 | Test Dashboard | `https://test.yourdomain.com` |
 | MLflow | `https://mlflow.yourdomain.com` |
-| Eval Reports | `https://YOUR_USERNAME.github.io/mortgageeval` |
+| Eval Reports | `https://YOUR_USERNAME.github.io/fineval` |
 
 ## Quick Start (Local)
 
@@ -46,7 +46,7 @@ docker compose up --build
 ## Project Structure
 
 ```
-mortgage-eval/
+fin-eval/
 ├── frontend/          # React 18 + TypeScript (Vite)
 ├── backend/           # FastAPI + uv (Python 3.12)
 ├── test-dashboard/    # React score-card app

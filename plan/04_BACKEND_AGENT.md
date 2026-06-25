@@ -10,7 +10,7 @@ from typing import TypedDict, Annotated
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
-class MortgageAgentState(TypedDict):
+class FinanceAgentState(TypedDict):
     # Conversation
     messages: Annotated[list[BaseMessage], add_messages]
     user_query: str
@@ -24,7 +24,7 @@ class MortgageAgentState(TypedDict):
     eligibility_result: dict
     rate_result: dict
     
-    # Loan input (optional — only for /recommend flow)
+    # Finance input (optional — only for /recommend flow)
     loan_input: dict
     
     # Output
@@ -86,7 +86,7 @@ def eligibility_checker(
     loan_type: str
 ) -> dict:
     """
-    Check mortgage eligibility based on DTI ratio and credit score.
+    Check finance eligibility based on DTI ratio and credit score.
     Returns eligibility status, DTI ratio, and credit band.
     """
     monthly_income = income / 12
@@ -120,8 +120,8 @@ def eligibility_checker(
 @tool
 def rate_fetcher(loan_type: str, credit_band: str) -> dict:
     """
-    Fetch current mortgage rates and available products for a given
-    loan type and credit band.
+    Fetch current financial rates and available products for a given
+    finance category and credit band.
     """
     rate = RATE_TABLE.get((loan_type, credit_band), 8.50)
     products = LOAN_PRODUCTS.get(loan_type, [])
@@ -149,22 +149,22 @@ TOOL_NAMES = {t.name for t in TOOLS}
 
 PROMPT_VERSION = "v3"
 
-MORTGAGE_QA_SYSTEM = """You are a helpful and accurate mortgage advisor assistant.
+FINANCE_QA_SYSTEM = """You are a helpful and accurate finance advisor assistant.
 
 Rules you must follow:
 1. Only answer using information from the provided context documents.
 2. If the answer is not in the context, say "I don't have that information in the provided documents."
-3. Never fabricate interest rates, loan limits, or eligibility criteria.
+3. Never fabricate interest rates, finance limits, or eligibility criteria.
 4. Be concise but complete. Use plain language.
-5. If asked about specific eligibility, encourage the user to consult a licensed loan officer.
+5. If asked about specific eligibility, encourage the user to consult a licensed financial advisor.
 
 Context documents:
 {context}
 """
 
-LOAN_RECOMMENDATION_SYSTEM = """You are a mortgage loan officer assistant.
+LOAN_RECOMMENDATION_SYSTEM = """You are a finance financial advisor assistant.
 
-Based on the eligibility check and available rates provided, recommend the best loan product.
+Based on the eligibility check and available rates provided, recommend the best financial product.
 Format your response as:
 1. Recommendation: [product name]
 2. Interest Rate: [rate]%
@@ -172,17 +172,17 @@ Format your response as:
 4. Reasoning: [2-3 sentences explaining why this product fits]
 5. Next steps: [what the applicant should do]
 
-Important: Always include a disclaimer that this is not a formal loan approval.
+Important: Always include a disclaimer that this is not a formal financial approval.
 Do not guarantee any outcome.
 
 Eligibility result: {eligibility_result}
 Available rates: {rate_result}
 """
 
-GUARDRAIL_SYSTEM = """Review the following mortgage assistant response for:
+GUARDRAIL_SYSTEM = """Review the following personal finance assistant response for:
 1. PII (names, SSNs, account numbers) — remove if found
 2. Fabricated specific numbers not in the context
-3. Guaranteed loan approvals (not allowed)
+3. Guaranteed financial approvals (not allowed)
 
 If the response is clean, return it unchanged.
 If issues found, fix them and return the corrected response.
@@ -198,9 +198,9 @@ Return only the response text, no commentary.
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langfuse.callback import CallbackHandler
-from app.agent.state import MortgageAgentState
+from app.agent.state import FinanceAgentState
 from app.agent.prompts import (
-    MORTGAGE_QA_SYSTEM, LOAN_RECOMMENDATION_SYSTEM,
+    FINANCE_QA_SYSTEM, LOAN_RECOMMENDATION_SYSTEM,
     GUARDRAIL_SYSTEM, PROMPT_VERSION
 )
 from app.agent.tools import eligibility_checker, rate_fetcher
@@ -211,7 +211,7 @@ import structlog
 logger = structlog.get_logger()
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, api_key=settings.openai_api_key)
 
-def _langfuse_handler(state: MortgageAgentState) -> CallbackHandler:
+def _langfuse_handler(state: FinanceAgentState) -> CallbackHandler:
     return CallbackHandler(
         public_key=settings.langfuse_public_key,
         secret_key=settings.langfuse_secret_key,
@@ -224,7 +224,7 @@ def _langfuse_handler(state: MortgageAgentState) -> CallbackHandler:
         }
     )
 
-async def rag_node(state: MortgageAgentState) -> dict:
+async def rag_node(state: FinanceAgentState) -> dict:
     """Retrieve relevant document chunks for the user query."""
     logger.info("rag_node", query=state["user_query"])
     
@@ -236,12 +236,12 @@ async def rag_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + ["rag_retrieval"]
     }
 
-async def eligibility_node(state: MortgageAgentState) -> dict:
-    """Run eligibility check if loan input is provided."""
+async def eligibility_node(state: FinanceAgentState) -> dict:
+    """Run eligibility check if finance input is provided."""
     loan_input = state.get("loan_input", {})
     
     if not loan_input:
-        logger.info("eligibility_node: skipped — no loan input")
+        logger.info("eligibility_node: skipped — no finance input")
         return {"eligibility_result": {}, "tool_calls_made": state.get("tool_calls_made", [])}
     
     logger.info("eligibility_node", loan_input=loan_input)
@@ -252,7 +252,7 @@ async def eligibility_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + ["eligibility_checker"]
     }
 
-async def rate_node(state: MortgageAgentState) -> dict:
+async def rate_node(state: FinanceAgentState) -> dict:
     """Fetch rates based on eligibility result."""
     eligibility = state.get("eligibility_result", {})
     loan_input = state.get("loan_input", {})
@@ -270,7 +270,7 @@ async def rate_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + ["rate_fetcher"]
     }
 
-async def response_node(state: MortgageAgentState) -> dict:
+async def response_node(state: FinanceAgentState) -> dict:
     """Generate final LLM response using retrieved context and tool results."""
     flow_type = state.get("flow_type", "chat")
     
@@ -282,7 +282,7 @@ async def response_node(state: MortgageAgentState) -> dict:
         user_msg = state["user_query"]
     else:
         context = "\n\n".join(state.get("retrieved_docs", ["No documents available."]))
-        system = MORTGAGE_QA_SYSTEM.format(context=context)
+        system = FINANCE_QA_SYSTEM.format(context=context)
         user_msg = state["user_query"]
     
     messages = [SystemMessage(content=system), HumanMessage(content=user_msg)]
@@ -296,7 +296,7 @@ async def response_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + [f"llm_response_{PROMPT_VERSION}"]
     }
 
-async def guardrail_node(state: MortgageAgentState) -> dict:
+async def guardrail_node(state: FinanceAgentState) -> dict:
     """Check response for PII and fabricated content."""
     messages = [
         SystemMessage(content=GUARDRAIL_SYSTEM),
@@ -316,20 +316,20 @@ async def guardrail_node(state: MortgageAgentState) -> dict:
 
 ```python
 from langgraph.graph import StateGraph, START, END
-from app.agent.state import MortgageAgentState
+from app.agent.state import FinanceAgentState
 from app.agent.nodes import (
     rag_node, eligibility_node, rate_node,
     response_node, guardrail_node
 )
 
-def should_run_eligibility(state: MortgageAgentState) -> str:
-    """Route to eligibility check only if loan data was provided."""
+def should_run_eligibility(state: FinanceAgentState) -> str:
+    """Route to eligibility check only if finance data was provided."""
     if state.get("loan_input") and state.get("flow_type") == "recommend":
         return "eligibility"
     return "response"
 
 def build_graph():
-    graph = StateGraph(MortgageAgentState)
+    graph = StateGraph(FinanceAgentState)
     
     # Add nodes
     graph.add_node("rag", rag_node)
@@ -356,7 +356,7 @@ def build_graph():
     return graph.compile()
 
 # Singleton — compiled once at startup
-mortgage_agent = build_graph()
+finance_agent = build_graph()
 ```
 
 ---
@@ -366,7 +366,7 @@ mortgage_agent = build_graph()
 ```python
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import ChatRequest, ChatResponse
-from app.agent.graph import mortgage_agent
+from app.agent.graph import finance_agent
 from langchain_core.messages import HumanMessage
 import uuid, structlog
 
@@ -378,7 +378,7 @@ async def chat(request: ChatRequest):
     trace_id = str(uuid.uuid4())
     
     try:
-        result = await mortgage_agent.ainvoke({
+        result = await finance_agent.ainvoke({
             "user_query": request.message,
             "session_id": request.session_id,
             "messages": [HumanMessage(content=request.message)],
@@ -414,7 +414,7 @@ async def chat(request: ChatRequest):
 ```python
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import LoanRequest, LoanResponse
-from app.agent.graph import mortgage_agent
+from app.agent.graph import finance_agent
 from langchain_core.messages import HumanMessage
 import uuid
 
@@ -432,9 +432,9 @@ async def recommend(request: LoanRequest):
         "employment": request.employment
     }
     
-    query = f"Recommend a mortgage for: income={request.income}, loan={request.loan_amount}, credit={request.credit_score}, type={request.loan_type}"
+    query = f"Recommend a finance for: income={request.income}, loan={request.loan_amount}, credit={request.credit_score}, type={request.loan_type}"
     
-    result = await mortgage_agent.ainvoke({
+    result = await finance_agent.ainvoke({
         "user_query": query,
         "session_id": trace_id,
         "messages": [HumanMessage(content=query)],
@@ -452,7 +452,7 @@ async def recommend(request: LoanRequest):
     rate = result.get("rate_result", {})
     
     return LoanResponse(
-        product=rate.get("available_products", ["Standard Mortgage"])[0],
+        product=rate.get("available_products", ["Standard Finance"])[0],
         rate=rate.get("interest_rate", 7.5),
         eligible=eligibility.get("eligible", False),
         reasoning=result["final_response"],
@@ -472,11 +472,11 @@ async def recommend(request: LoanRequest):
 - [ ] `chat.py` updated to use real agent
 - [ ] `recommend.py` updated to use real agent
 - [ ] Local test: POST `/chat` with "What is the DTI limit for FHA loans?" returns real LLM response
-- [ ] Local test: POST `/recommend` with sample loan data returns rate + eligibility
+- [ ] Local test: POST `/recommend` with sample finance data returns rate + eligibility
 - [ ] Verify tool_calls_made list shows which nodes ran
 - [ ] Langfuse first-time setup:
   - Visit `https://trace.domain.com` → create account (first user becomes admin)
-  - Create project named "mortgageeval"
+  - Create project named "fineval"
   - Settings → API Keys → Create key pair
   - Copy `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` into `.env`
   - `docker compose restart backend`

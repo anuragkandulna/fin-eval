@@ -1,7 +1,7 @@
 [project]
-name = "mortgageeval-backend"
+name = "fineval-backend"
 version = "0.1.0"
-description = "FastAPI backend for MortgageEval — AI mortgage assistant with RAG and LangGraph agent"
+description = "FastAPI backend for FinEval — AI personal finance assistant with RAG and LangGraph agent"
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "fastapi==0.111.0",

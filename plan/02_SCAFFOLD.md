@@ -6,14 +6,14 @@
 ## Step 2.1 — Create repo on GitHub
 
 1. Go to github.com → New repository
-2. Name: `mortgageeval`
+2. Name: `fineval`
 3. Visibility: **Public** (required for GitHub Pages)
 4. Initialize with README: yes
 5. Clone locally:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/mortgageeval.git
-cd mortgageeval
+git clone https://github.com/YOUR_USERNAME/fineval.git
+cd fineval
 ```
 
 ---
@@ -131,7 +131,7 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: mortgageeval
+      POSTGRES_DB: fineval
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -260,20 +260,20 @@ ENVIRONMENT=production
 OPENAI_API_KEY=sk-...
 
 # Database
-DB_USER=mortgageeval
+DB_USER=fineval
 DB_PASSWORD=your_strong_password_here
-DATABASE_URL=postgresql://mortgageeval:your_strong_password_here@postgres/mortgageeval
+DATABASE_URL=postgresql://fineval:your_strong_password_here@postgres/fineval
 
 # Redis
 REDIS_URL=redis://redis:6379
 
 # MLflow
 MLFLOW_TRACKING_URI=http://mlflow:5000
-MLFLOW_EXPERIMENT_NAME=mortgageeval
+MLFLOW_EXPERIMENT_NAME=fineval
 
 # Qdrant
 QDRANT_URL=http://qdrant:6333
-QDRANT_COLLECTION=mortgage_docs
+QDRANT_COLLECTION=finance_docs
 
 # Langfuse
 LANGFUSE_SECRET=generate_a_random_32_char_string   # openssl rand -hex 32
@@ -283,7 +283,7 @@ LANGFUSE_SECRET_KEY=sk-lf-...      # generated after first Langfuse login
 LANGFUSE_HOST=http://langfuse:3000
 
 # GitHub (for test dashboard trigger)
-GITHUB_REPO=YOUR_USERNAME/mortgageeval
+GITHUB_REPO=YOUR_USERNAME/fineval
 GITHUB_TOKEN=ghp_...
 
 # Eval thresholds
@@ -328,15 +328,15 @@ services:
 ## Step 2.7 — README.md skeleton
 
 ```markdown
-# MortgageEval
+# FinEval
 
-An agentic AI mortgage assistant with a production-grade eval framework.
+An agentic AI personal finance assistant with a production-grade eval framework.
 
 ## Live URLs
 - **App:** https://app.domain.com
 - **Eval Dashboard:** https://test.domain.com
 - **MLflow:** https://mlflow.domain.com
-- **Eval Reports:** https://YOUR_USERNAME.github.io/mortgageeval
+- **Eval Reports:** https://YOUR_USERNAME.github.io/fineval
 
 ## What this project demonstrates
 - Agentic AI application (LangGraph + RAG + multi-tool orchestration)

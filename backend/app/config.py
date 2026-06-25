@@ -11,10 +11,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
 
     qdrant_url: str = "http://localhost:6333"
-    qdrant_collection: str = "mortgage_docs"
+    qdrant_collection: str = "finance_docs"
 
     mlflow_tracking_uri: str = "http://localhost:5000"
-    mlflow_experiment_name: str = "mortgageeval"
+    mlflow_experiment_name: str = "fineval"
 
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     
     # Qdrant
     qdrant_url: str = "http://localhost:6333"
-    qdrant_collection: str = "mortgage_docs"
+    qdrant_collection: str = "finance_docs"
 
     # Langfuse
     langfuse_public_key: str = ""
@@ -69,7 +69,7 @@ class Settings(BaseSettings):
 
     # MLflow
     mlflow_tracking_uri: str = "http://localhost:5000"
-    mlflow_experiment_name: str = "mortgageeval"
+    mlflow_experiment_name: str = "fineval"
     
     # Thresholds
     faithfulness_threshold: float = 0.70
@@ -236,7 +236,7 @@ async def recommend(request: LoanRequest):
         eligible = request.credit_score >= 620 and dti <= 0.43
 
         return LoanResponse(
-            product="30-Year Fixed Rate Mortgage (Mock)",
+            product="30-Year Fixed Rate Finance (Mock)",
             rate=6.75,
             eligible=eligible,
             reasoning=f"Mock reasoning: DTI={dti:.2f}, Credit={request.credit_score}",
@@ -355,14 +355,14 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting MortgageEval API")
+    logger.info("Starting FinEval API")
     await init_db()
     yield
-    logger.info("Shutting down MortgageEval API")
+    logger.info("Shutting down FinEval API")
 
 app = FastAPI(
-    title="MortgageEval API",
-    description="Agentic mortgage assistant with eval framework",
+    title="FinEval API",
+    description="Agentic personal finance assistant with eval framework",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -382,7 +382,7 @@ app.include_router(scores.router)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "mortgageeval-api"}
+    return {"status": "ok", "service": "fineval-api"}
 ```
 
 ---

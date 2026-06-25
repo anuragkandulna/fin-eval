@@ -1,12 +1,11 @@
-from fastapi import APIRouter, HTTPException
-from app.models.schemas import ChatRequest, ChatResponse
-from app.agent.graph import mortgage_agent
-from app.config import settings
-from langchain_core.messages import HumanMessage
 import uuid
-import structlog
+from fastapi import APIRouter, HTTPException
+from langchain_core.messages import HumanMessage
 
-logger = structlog.get_logger()
+from app.agent.graph import finance_agent
+from app.config import settings
+from app.models.schemas import ChatRequest, ChatResponse
+
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
@@ -14,18 +13,20 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 async def chat(request: ChatRequest):
     trace_id = str(uuid.uuid4())
     try:
-        result = await mortgage_agent.ainvoke({
-            "user_query": request.message,
-            "session_id": request.session_id,
-            "messages": [HumanMessage(content=request.message)],
-            "flow_type": "chat",
-            "loan_input": {},
-            "trace_id": trace_id,
-            "retrieved_docs": [],
-            "doc_sources": [],
-            "eligibility_result": {},
-            "rate_result": {},
-            "tool_calls_made": [],
+        result = await finance_agent.ainvoke({
+            "user_query":       request.message,
+            "session_id":       request.session_id,
+            "messages":         [HumanMessage(content=request.message)],
+            "flow_type":        "chat",
+            "finance_input":    {},
+            "document_content": "",
+            "trace_id":         trace_id,
+            "retrieved_docs":   [],
+            "doc_sources":      [],
+            "budget_result":    {},
+            "debt_result":      {},
+            "savings_result":   {},
+            "tool_calls_made":  [],
         })
 
         langfuse_base = settings.langfuse_host.replace(
@@ -41,5 +42,4 @@ async def chat(request: ChatRequest):
             trace_url=trace_url,
         )
     except Exception as e:
-        logger.error("chat_error", error=str(e), trace_id=trace_id)
         raise HTTPException(status_code=500, detail=str(e))

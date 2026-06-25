@@ -1,0 +1,42 @@
+India-Specific Personal Finance Basics
+
+Tax Deductions Under Section 80C (up to Rs 1,50,000):
+- PPF contributions
+- EPF contributions
+- ELSS mutual funds (3-year lock-in)
+- Life insurance premiums
+- Home loan principal repayment
+- Children's tuition fees
+- NSC (National Savings Certificate)
+- 5-year tax-saving FD
+
+HRA (House Rent Allowance) Exemption:
+Salaried individuals can claim HRA exemption for rent paid.
+Exemption is minimum of: actual HRA received, 50% of basic salary (metro) or 40% (non-metro), actual rent minus 10% of basic salary.
+Requires rent receipts and landlord PAN if annual rent exceeds Rs 1,00,000.
+
+Home Loan Tax Benefits:
+- Principal repayment: Section 80C (up to Rs 1,50,000)
+- Interest payment: Section 24(b) (up to Rs 2,00,000 for self-occupied property)
+- Additional benefit for first-time buyers under Section 80EE or 80EEA
+
+Standard Deduction:
+Rs 50,000 standard deduction available for salaried individuals under old tax regime.
+Under new tax regime, standard deduction increased to Rs 75,000 from FY 2024-25.
+
+Old vs New Tax Regime:
+Old regime: higher tax rates but many deductions available (80C, HRA, home loan interest)
+New regime: lower tax rates but most deductions not available
+Rule of thumb: if total deductions exceed Rs 3-3.5 lakhs, old regime may be beneficial
+Consult a tax professional for personalised advice based on your income and deductions
+
+CIBIL Score and Credit Health:
+Score range: 300-900. 750+ considered good for financial approvals.
+Factors affecting score: payment history (35%), credit utilisation (30%), length of history (15%), credit mix (10%), new inquiries (10%)
+Check score free once per year from CIBIL website or via many banking apps.
+Dispute errors in credit report — incorrect entries can unfairly lower your score.
+
+Emergency Contacts for Financial Distress:
+SEBI investor helpline: 1800-266-7575
+RBI complaints: https://cms.rbi.org.in
+National Consumer Helpline: 1800-11-4000

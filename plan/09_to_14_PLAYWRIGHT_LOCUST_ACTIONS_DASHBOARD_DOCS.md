@@ -1,5 +1,5 @@
 # Section 09 — Eval: Playwright E2E Tests
-**Goal:** 3 E2E test scenarios covering chat, loan form, and document upload
+**Goal:** 3 E2E test scenarios covering chat, finance form, and document upload
 
 ---
 
@@ -21,14 +21,14 @@ from playwright.sync_api import sync_playwright, expect
 BASE_URL = "https://app.domain.com"   # or http://localhost:3000 for local
 
 def test_chat_question_and_response():
-    """User asks a mortgage question and gets a response."""
+    """User asks a personal finance question and gets a response."""
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
         page.goto(BASE_URL)
         
         # Type question
-        page.fill('[data-testid="chat-input"]', "What is the minimum FHA credit score?")
+        page.fill('[data-testid="chat-input"]', "What is the 50/30/20 budgeting rule?")
         page.click('[data-testid="send-button"]')
         
         # Wait for response (allow up to 20s for LLM)
@@ -50,7 +50,7 @@ def test_loading_indicator_appears():
         page = browser.new_page()
         page.goto(BASE_URL)
         
-        page.fill('[data-testid="chat-input"]', "What is a mortgage?")
+        page.fill('[data-testid="chat-input"]', "What is personal finance?")
         page.click('[data-testid="send-button"]')
         
         # Loading indicator should appear briefly
@@ -217,7 +217,7 @@ trailer<</Size 4/Root 1 0 R>>\nstartxref\n%%EOF"""
 - [ ] Playwright installed + Chromium browser downloaded
 - [ ] `data-testid` attributes on all frontend elements (verify from Section 06)
 - [ ] Chat flow tests — at least 3 passing
-- [ ] Loan form tests — eligible + ineligible cases pass
+- [ ] Finance form tests — eligible + ineligible cases pass
 - [ ] Document upload test passing
 - [ ] All test files use `BASE_URL` env var (not hardcoded)
 - [ ] Local run: `pytest evals/playwright_tests/ -v`
@@ -239,7 +239,7 @@ from locust import HttpUser, task, between
 import random
 
 CHAT_QUESTIONS = [
-    "What is the minimum FHA credit score?",
+    "What is the 50/30/20 budgeting rule?",
     "What is DTI ratio?",
     "Explain PMI",
     "What is an ARM loan?",
@@ -252,11 +252,11 @@ LOAN_PROFILES = [
     {"income": 120000,"loan_amount": 500000, "credit_score": 780, "loan_type": "fixed", "employment": "self_employed"},
 ]
 
-class MortgageAPIUser(HttpUser):
+class FinanceAPIUser(HttpUser):
     wait_time = between(1, 3)
     
     @task(4)
-    def ask_mortgage_question(self):
+    def ask_finance_question(self):
         """Main task — chat endpoint (higher weight)."""
         self.client.post("/chat", json={
             "message": random.choice(CHAT_QUESTIONS),
@@ -490,14 +490,14 @@ print('MLflow connection OK')
 def setup_experiment():
     """Create experiment if it doesn't exist."""
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
-    experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "mortgageeval")
+    experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "fineval")
     
     if not mlflow.get_experiment_by_name(experiment_name):
         mlflow.create_experiment(
             experiment_name,
             tags={
-                "project": "mortgageeval",
-                "description": "Agentic mortgage assistant eval framework"
+                "project": "fineval",
+                "description": "Agentic personal finance assistant eval framework"
             }
         )
     mlflow.set_experiment(experiment_name)
@@ -512,7 +512,7 @@ def setup_experiment():
 - [ ] `https://mlflow.domain.com` accessible in browser (basic auth prompt appears)
 - [ ] Login with credentials from Step 1.7 — MLflow UI loads
 - [ ] Test run logged successfully via tracker.py
-- [ ] Experiment "mortgageeval" visible in MLflow UI
+- [ ] Experiment "fineval" visible in MLflow UI
 - [ ] Commit: `git commit -m "feat: MLflow VPS setup + tracker + CI gate"`
 
 ---
@@ -538,7 +538,7 @@ Go to GitHub repo → Settings → Secrets and variables → Actions:
 | `MLFLOW_USER` | mlflow |
 | `MLFLOW_PASSWORD` | your MLflow basic auth password |
 | `BACKEND_URL` | `https://app.domain.com` |
-| `DB_USER` | mortgageeval |
+| `DB_USER` | fineval |
 | `DB_PASSWORD` | your db password |
 
 ---
@@ -566,7 +566,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/deploy/mortgageeval
+            cd /home/deploy/fineval
             git pull origin main
             docker compose pull
             docker compose up --build -d
@@ -748,7 +748,7 @@ def build_dashboard():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MortgageEval — Eval Reports</title>
+<title>FinEval — Eval Reports</title>
 <style>
   body {{ font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; }}
   h1 {{ font-size: 24px; font-weight: 600; }}
@@ -770,7 +770,7 @@ def build_dashboard():
 </style>
 </head>
 <body>
-<h1>MortgageEval — Eval Reports</h1>
+<h1>FinEval — Eval Reports</h1>
 <div class="meta">
   Run #{os.getenv("GITHUB_RUN_NUMBER", "local")} · {datetime.now().strftime("%B %d %Y, %H:%M UTC")}
   <span class="gate" style="margin-left: 12px;">CI Gate: {ci_status}</span>
@@ -808,7 +808,7 @@ def build_dashboard():
 </div>
 
 <div class="history">
-  Report history available in the <a href="https://github.com/YOUR_USERNAME/mortgageeval/actions">GitHub Actions runs</a>.
+  Report history available in the <a href="https://github.com/YOUR_USERNAME/fineval/actions">GitHub Actions runs</a>.
 </div>
 </body>
 </html>"""
@@ -833,7 +833,7 @@ if __name__ == "__main__":
 - [ ] GitHub Pages enabled: repo Settings → Pages → Branch: `gh-pages`
 - [ ] First full pipeline run: push a small change to main
 - [ ] Check Actions tab — deploy + eval workflows both visible
-- [ ] Check `https://YOUR_USERNAME.github.io/mortgageeval` — dashboard loads
+- [ ] Check `https://YOUR_USERNAME.github.io/fineval` — dashboard loads
 - [ ] Commit: `git commit -m "ci: GitHub Actions deploy + eval pipeline + GitHub Pages"`
 
 ---
@@ -855,7 +855,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN
 const PAGES_URL = import.meta.env.VITE_PAGES_URL || 
-  "https://YOUR_USERNAME.github.io/mortgageeval"
+  "https://YOUR_USERNAME.github.io/fineval"
 
 interface Scores {
   deepeval: { faithfulness: number; hallucination_rate: number; tool_accuracy: number }
@@ -916,7 +916,7 @@ export default function App() {
     <div style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 800, margin: '40px auto', padding: '0 20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22 }}>MortgageEval — Test Dashboard</h1>
+          <h1 style={{ margin: 0, fontSize: 22 }}>FinEval — Test Dashboard</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: '#666' }}>
             {scores ? `Last updated: ${new Date(scores.last_updated).toLocaleString()}` : 'Loading...'}
           </p>
@@ -1123,10 +1123,10 @@ Update README to add:
 Before applying to jobs, verify all of these:
 
 **Live URLs**
-- [ ] `https://app.domain.com` — app loads, chat works, loan form works
+- [ ] `https://app.domain.com` — app loads, chat works, finance form works
 - [ ] `https://test.domain.com` — scores load, trigger button works
 - [ ] `https://mlflow.domain.com` — login works, experiments visible
-- [ ] `https://YOUR_USERNAME.github.io/mortgageeval` — dashboard with report links
+- [ ] `https://YOUR_USERNAME.github.io/fineval` — dashboard with report links
 
 **GitHub repo**
 - [ ] Public repo with clean commit history
@@ -1135,7 +1135,7 @@ Before applying to jobs, verify all of these:
 - [ ] `docs/findings.md` has real findings
 
 **What to say in interviews**
-> "I built a mortgage assistant in LangGraph with RAG and tool orchestration.
+> "I built a personal finance assistant in LangGraph with RAG and tool orchestration.
 > The real project is the eval framework around it — DeepEval for LLM quality,
 > Playwright for E2E flows, Locust for load, Lighthouse for frontend.
 > All five run in CI on every push, results publish to GitHub Pages automatically,

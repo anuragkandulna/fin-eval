@@ -23,7 +23,7 @@ ssh root@YOUR_VPS_IP
 ## Step 1.2 — Buy a domain
 
 Go to namecheap.com and buy a `.com` domain.
-Suggested names: `mortgageeval.com`, `anuragqai.com`, `loaneval.com`
+Suggested names: `fineval.com`, `anuragqai.com`, `loaneval.com`
 
 After purchase, go to **Advanced DNS** settings in Namecheap.
 
@@ -87,7 +87,7 @@ su - deploy
 Create the Nginx config file:
 
 ```bash
-sudo nano /etc/nginx/sites-available/mortgageeval
+sudo nano /etc/nginx/sites-available/fineval
 ```
 
 Paste this content:
@@ -157,7 +157,7 @@ server {
 Enable the config and test:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/mortgageeval /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/fineval /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -199,8 +199,8 @@ sudo htpasswd -c /etc/nginx/.htpasswd mlflow
 
 ```bash
 # On VPS, as deploy user
-mkdir -p /home/deploy/mortgageeval
-cd /home/deploy/mortgageeval
+mkdir -p /home/deploy/fineval
+cd /home/deploy/fineval
 
 # Add your SSH key to VPS for GitHub Actions deployment
 # On your LOCAL machine:
@@ -221,7 +221,7 @@ ssh-copy-id -i ~/.ssh/id_ed25519_deploy.pub deploy@YOUR_VPS_IP
 - [ ] Nginx installed and config created (four server blocks)
 - [ ] SSL certificates issued for all four subdomains (app, test, mlflow, trace)
 - [ ] MLflow basic auth password set
-- [ ] Deploy directory created at `/home/deploy/mortgageeval`
+- [ ] Deploy directory created at `/home/deploy/fineval`
 - [ ] GitHub Actions SSH key added to VPS
 
 **Before proceeding:** Visit `https://app.domain.com` in browser.

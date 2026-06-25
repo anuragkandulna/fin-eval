@@ -1,4 +1,4 @@
-# MortgageEval — AI Coding Prompt
+# FinEval — AI Coding Prompt
 > Paste this entire prompt into Cursor, Claude, or any AI coding assistant to start building.
 > Work section by section. Do not ask the AI to build everything at once.
 
@@ -6,8 +6,8 @@
 
 ## Project context
 
-You are helping me build **MortgageEval** — a monorepo containing:
-1. A sample agentic AI mortgage assistant app (React + FastAPI + LangGraph)
+You are helping me build **FinEval** — a monorepo containing:
+1. A sample agentic AI personal finance assistant app (React + FastAPI + LangGraph)
 2. A production-grade eval framework around it (DeepEval + MLflow + Playwright + Locust + Lighthouse)
 
 The goal is to demonstrate Senior AI QA Engineer skills for job interviews.
@@ -52,7 +52,7 @@ Docker Compose runs all services with one command.
 Build this exact structure:
 
 ```
-mortgageeval/
+fineval/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
@@ -99,10 +99,10 @@ mortgageeval/
 │   │   ├── main.py
 │   │   └── config.py
 │   ├── data/
-│   │   └── mortgage_docs/
-│   │       ├── fha_guidelines.txt
-│   │       ├── conventional_loans.txt
-│   │       └── mortgage_glossary.txt
+│   │   └── finance_docs/
+│   │       ├── budgeting_basics.txt
+│   │       ├── debt_management.txt
+│   │       └── finance_glossary.txt
 │   ├── requirements.txt
 │   └── Dockerfile
 │
@@ -197,14 +197,14 @@ mlflow_artifacts/
 DOMAIN=yourdomain.com
 ENVIRONMENT=production
 OPENAI_API_KEY=sk-...
-DB_USER=mortgageeval
+DB_USER=fineval
 DB_PASSWORD=your_strong_password
-DATABASE_URL=postgresql://mortgageeval:your_strong_password@postgres/mortgageeval
+DATABASE_URL=postgresql://fineval:your_strong_password@postgres/fineval
 REDIS_URL=redis://redis:6379
 MLFLOW_TRACKING_URI=http://mlflow:5000
-MLFLOW_EXPERIMENT_NAME=mortgageeval
+MLFLOW_EXPERIMENT_NAME=fineval
 CHROMA_PERSIST_DIR=/app/chroma_db
-GITHUB_REPO=YOUR_USERNAME/mortgageeval
+GITHUB_REPO=YOUR_USERNAME/fineval
 GITHUB_TOKEN=ghp_...
 FAITHFULNESS_THRESHOLD=0.70
 HALLUCINATION_THRESHOLD=0.30
@@ -222,7 +222,7 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: mortgageeval
+      POSTGRES_DB: fineval
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -365,7 +365,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     chroma_persist_dir: str = "./chroma_db"
     mlflow_tracking_uri: str = "http://localhost:5000"
-    mlflow_experiment_name: str = "mortgageeval"
+    mlflow_experiment_name: str = "fineval"
     faithfulness_threshold: float = 0.70
     hallucination_threshold: float = 0.30
     tool_accuracy_threshold: float = 0.90
@@ -491,7 +491,7 @@ async def recommend(request: LoanRequest):
     dti = monthly_payment / monthly_income
     eligible = request.credit_score >= 620 and dti <= 0.43
     return LoanResponse(
-        product="30-Year Fixed Rate Mortgage (Mock)",
+        product="30-Year Fixed Rate Finance (Mock)",
         rate=6.75,
         eligible=eligible,
         reasoning=f"Mock: DTI={dti:.2f}, Credit={request.credit_score}",
@@ -580,12 +580,12 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting MortgageEval API")
+    logger.info("Starting FinEval API")
     await init_db()
     yield
 
 app = FastAPI(
-    title="MortgageEval API",
+    title="FinEval API",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -604,7 +604,7 @@ app.include_router(scores.router)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "mortgageeval-api"}
+    return {"status": "ok", "service": "fineval-api"}
 ```
 
 ### backend/Dockerfile
@@ -636,15 +636,15 @@ Replace mock responses with real agentic flows.
 ```python
 PROMPT_VERSION = "v3"
 
-MORTGAGE_QA_SYSTEM = """You are MortgageEval Assistant, an AI advisor that helps users understand mortgage products and check loan eligibility.
+FINANCE_QA_SYSTEM = """You are FinEval Assistant, an AI advisor that helps users understand finance products and check loan eligibility.
 
 ## Identity and scope
-You are a mortgage information assistant providing educational information about mortgages, loan types, eligibility requirements, and terminology. You are NOT a licensed loan officer and cannot issue formal loan approvals or guarantees.
+You are a finance information assistant providing educational information about finances, finance categorys, eligibility requirements, and terminology. You are NOT a licensed financial advisor and cannot issue formal financial approvals or guarantees.
 
 ## Knowledge boundaries
 Only answer using information from the context documents provided below.
 If the answer is not present in the context, respond exactly with:
-"I don't have that information in the provided documents. Please consult a licensed mortgage advisor."
+"I don't have that information in the provided documents. Please consult a licensed finance advisor."
 
 Never fabricate:
 - Specific current interest rates
@@ -661,7 +661,7 @@ Never fabricate:
 ## Guardrails
 - Never reveal PII from context documents
 - Never recommend a specific lender by name
-- Never guarantee loan approval or a specific rate
+- Never guarantee financial approval or a specific rate
 - Legal questions → redirect to a licensed attorney
 - If the user appears distressed about finances, respond with empathy and suggest a HUD-approved housing counselor
 
@@ -671,9 +671,9 @@ Never fabricate:
 ## Prompt version: {prompt_version}"""
 
 
-LOAN_RECOMMENDATION_SYSTEM = """You are a mortgage loan officer assistant providing educational loan recommendations.
+LOAN_RECOMMENDATION_SYSTEM = """You are a finance financial advisor assistant providing educational loan recommendations.
 
-Based on the eligibility result and available rates below, recommend the best loan product.
+Based on the eligibility result and available rates below, recommend the best financial product.
 
 Format your response exactly as:
 1. Recommendation: [product name]
@@ -683,7 +683,7 @@ Format your response exactly as:
 5. Next steps: [what the applicant should do next]
 
 Important rules:
-- Always include: "This is educational information only, not a formal loan approval."
+- Always include: "This is educational information only, not a formal financial approval."
 - Do not guarantee any outcome
 - Do not recommend a specific lender by name
 
@@ -693,10 +693,10 @@ Available rates: {rate_result}
 Prompt version: {prompt_version}"""
 
 
-GUARDRAIL_SYSTEM = """Review the following mortgage assistant response for these issues:
+GUARDRAIL_SYSTEM = """Review the following personal finance assistant response for these issues:
 1. PII (names, SSNs, account numbers, phone numbers) — remove if found
 2. Fabricated specific numbers not present in the original context
-3. Guaranteed loan approvals (not allowed — must say "educational only")
+3. Guaranteed financial approvals (not allowed — must say "educational only")
 4. Specific lender name recommendations
 
 If the response is clean, return it unchanged.
@@ -710,7 +710,7 @@ from typing import TypedDict, Annotated
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
-class MortgageAgentState(TypedDict):
+class FinanceAgentState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
     user_query: str
     session_id: str
@@ -768,7 +768,7 @@ def get_credit_band(score: int) -> str:
 
 @tool
 def eligibility_checker(income: float, loan_amount: float, credit_score: int, loan_type: str) -> dict:
-    """Check mortgage eligibility based on DTI ratio and credit score thresholds."""
+    """Check finance eligibility based on DTI ratio and credit score thresholds."""
     monthly_income = income / 12
     rate = 0.07 / 12
     monthly_payment = loan_amount * (rate * (1+rate)**360) / ((1+rate)**360 - 1)
@@ -793,7 +793,7 @@ def eligibility_checker(income: float, loan_amount: float, credit_score: int, lo
 
 @tool
 def rate_fetcher(loan_type: str, credit_band: str) -> dict:
-    """Fetch current mortgage rates and available products for a loan type and credit band."""
+    """Fetch current financial rates and available products for a finance category and credit band."""
     rate = RATE_TABLE.get((loan_type, credit_band), 8.50)
     return {
         "interest_rate": rate,
@@ -811,8 +811,8 @@ TOOLS = [eligibility_checker, rate_fetcher]
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
-from app.agent.state import MortgageAgentState
-from app.agent.prompts import MORTGAGE_QA_SYSTEM, LOAN_RECOMMENDATION_SYSTEM, GUARDRAIL_SYSTEM, PROMPT_VERSION
+from app.agent.state import FinanceAgentState
+from app.agent.prompts import FINANCE_QA_SYSTEM, LOAN_RECOMMENDATION_SYSTEM, GUARDRAIL_SYSTEM, PROMPT_VERSION
 from app.agent.tools import eligibility_checker, rate_fetcher
 from app.rag.retriever import retrieve_docs
 from app.config import settings
@@ -821,7 +821,7 @@ import structlog
 logger = structlog.get_logger()
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, api_key=settings.openai_api_key)
 
-async def rag_node(state: MortgageAgentState) -> dict:
+async def rag_node(state: FinanceAgentState) -> dict:
     docs, sources = await retrieve_docs(state["user_query"])
     return {
         "retrieved_docs": docs,
@@ -829,7 +829,7 @@ async def rag_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + ["rag_retrieval"]
     }
 
-async def eligibility_node(state: MortgageAgentState) -> dict:
+async def eligibility_node(state: FinanceAgentState) -> dict:
     loan_input = state.get("loan_input", {})
     if not loan_input:
         return {"eligibility_result": {}, "tool_calls_made": state.get("tool_calls_made", [])}
@@ -839,7 +839,7 @@ async def eligibility_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + ["eligibility_checker"]
     }
 
-async def rate_node(state: MortgageAgentState) -> dict:
+async def rate_node(state: FinanceAgentState) -> dict:
     eligibility = state.get("eligibility_result", {})
     loan_input = state.get("loan_input", {})
     if not eligibility or not loan_input:
@@ -853,7 +853,7 @@ async def rate_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + ["rate_fetcher"]
     }
 
-async def response_node(state: MortgageAgentState) -> dict:
+async def response_node(state: FinanceAgentState) -> dict:
     flow_type = state.get("flow_type", "chat")
     if flow_type == "recommend":
         system = LOAN_RECOMMENDATION_SYSTEM.format(
@@ -863,7 +863,7 @@ async def response_node(state: MortgageAgentState) -> dict:
         )
     else:
         context = "\n\n".join(state.get("retrieved_docs", ["No documents available."]))
-        system = MORTGAGE_QA_SYSTEM.format(context=context, prompt_version=PROMPT_VERSION)
+        system = FINANCE_QA_SYSTEM.format(context=context, prompt_version=PROMPT_VERSION)
     messages = [SystemMessage(content=system), HumanMessage(content=state["user_query"])]
     response = await llm.ainvoke(messages)
     return {
@@ -871,7 +871,7 @@ async def response_node(state: MortgageAgentState) -> dict:
         "tool_calls_made": state.get("tool_calls_made", []) + [f"llm_response_{PROMPT_VERSION}"]
     }
 
-async def guardrail_node(state: MortgageAgentState) -> dict:
+async def guardrail_node(state: FinanceAgentState) -> dict:
     messages = [SystemMessage(content=GUARDRAIL_SYSTEM), HumanMessage(content=state["final_response"])]
     result = await llm.ainvoke(messages)
     return {
@@ -883,16 +883,16 @@ async def guardrail_node(state: MortgageAgentState) -> dict:
 ### backend/app/agent/graph.py
 ```python
 from langgraph.graph import StateGraph, START, END
-from app.agent.state import MortgageAgentState
+from app.agent.state import FinanceAgentState
 from app.agent.nodes import rag_node, eligibility_node, rate_node, response_node, guardrail_node
 
-def should_run_eligibility(state: MortgageAgentState) -> str:
+def should_run_eligibility(state: FinanceAgentState) -> str:
     if state.get("loan_input") and state.get("flow_type") == "recommend":
         return "eligibility"
     return "response"
 
 def build_graph():
-    graph = StateGraph(MortgageAgentState)
+    graph = StateGraph(FinanceAgentState)
     graph.add_node("rag", rag_node)
     graph.add_node("eligibility", eligibility_node)
     graph.add_node("rate", rate_node)
@@ -907,7 +907,7 @@ def build_graph():
     graph.add_edge("guardrail", END)
     return graph.compile()
 
-mortgage_agent = build_graph()
+finance_agent = build_graph()
 ```
 
 ### Update backend/app/routers/chat.py
@@ -915,7 +915,7 @@ Replace mock with real agent call:
 ```python
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import ChatRequest, ChatResponse
-from app.agent.graph import mortgage_agent
+from app.agent.graph import finance_agent
 from langchain_core.messages import HumanMessage
 import uuid, structlog
 
@@ -926,7 +926,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 async def chat(request: ChatRequest):
     trace_id = str(uuid.uuid4())
     try:
-        result = await mortgage_agent.ainvoke({
+        result = await finance_agent.ainvoke({
             "user_query": request.message,
             "session_id": request.session_id,
             "messages": [HumanMessage(content=request.message)],
@@ -951,9 +951,9 @@ async def chat(request: ChatRequest):
 ```
 
 **Confirm before proceeding:**
-- `POST /chat` with a real mortgage question returns a grounded LLM response
+- `POST /chat` with a real personal finance question returns a grounded LLM response
 - `tool_calls_made` includes `rag_retrieval` and `llm_response_v3`
-- `POST /recommend` with loan data returns real eligibility + rate
+- `POST /recommend` with finance data returns real eligibility + rate
 
 ---
 
@@ -977,7 +977,7 @@ def get_vectorstore():
     return Chroma(
         persist_directory=settings.chroma_persist_dir,
         embedding_function=embeddings,
-        collection_name="mortgage_docs"
+        collection_name="finance_docs"
     )
 
 async def ingest_file(file_path: str, doc_id: str) -> int:
@@ -1021,8 +1021,8 @@ async def retrieve_docs(query: str) -> tuple[list[str], list[str]]:
     )
 ```
 
-### backend/data/mortgage_docs/fha_guidelines.txt
-Create this file with the following content (public domain mortgage information):
+### backend/data/finance_docs/budgeting_basics.txt
+Create this file with the following content (public domain finance information):
 ```
 FHA Loan Guidelines
 
@@ -1046,9 +1046,9 @@ Bankruptcy and Foreclosure Waiting Periods:
 - Chapter 13 bankruptcy: 1 year of on-time payments required
 - Foreclosure: 3-year waiting period from completion date
 
-FHA Mortgage Insurance:
-- Upfront mortgage insurance premium (UFMIP): 1.75% of loan amount
-- Annual mortgage insurance premium (MIP): 0.55% to 1.05% depending on term and LTV
+FHA Finance Insurance:
+- Upfront finance insurance premium (UFMIP): 1.75% of target amount
+- Annual finance insurance premium (MIP): 0.55% to 1.05% depending on term and LTV
 - MIP required for the life of the loan if down payment is less than 10%
 
 Employment Requirements:
@@ -1057,7 +1057,7 @@ Employment Requirements:
 - Part-time income may be counted with 2-year history
 ```
 
-### backend/data/mortgage_docs/conventional_loans.txt
+### backend/data/finance_docs/debt_management.txt
 ```
 Conventional Loan Guidelines
 
@@ -1074,7 +1074,7 @@ Conforming Loan Limits:
 Down Payment Requirements:
 - Minimum 3% with certain programs (Fannie Mae HomeReady, Freddie Mac Home Possible)
 - 5% standard minimum for most borrowers
-- 20% avoids private mortgage insurance (PMI)
+- 20% avoids private finance insurance (PMI)
 - PMI required when down payment is less than 20%
 
 Debt-to-Income Ratio:
@@ -1082,45 +1082,45 @@ Debt-to-Income Ratio:
 - Maximum back-end DTI: typically 45-50% with strong compensating factors
 - Front-end DTI: ideally 28% or less
 
-Private Mortgage Insurance (PMI):
+Private Finance Insurance (PMI):
 - Required when LTV exceeds 80% (less than 20% down)
 - Can be removed when LTV reaches 80% through paydown or appreciation
-- PMI cost: typically 0.5% to 1.5% of loan amount annually
+- PMI cost: typically 0.5% to 1.5% of target amount annually
 
-Loan Types:
+Finance Categorys:
 - 30-Year Fixed: stable payments, higher total interest
 - 15-Year Fixed: higher payments, lower total interest, faster equity
 - 5/1 ARM: fixed for 5 years then adjusts annually
 - 7/1 ARM: fixed for 7 years then adjusts annually
 ```
 
-### backend/data/mortgage_docs/mortgage_glossary.txt
+### backend/data/finance_docs/finance_glossary.txt
 ```
-Mortgage Glossary
+Finance Glossary
 
 APR (Annual Percentage Rate):
-The true cost of borrowing, including the interest rate plus fees (origination fees, mortgage insurance, discount points). APR is always equal to or higher than the interest rate. Use APR to compare loans accurately.
+The true cost of borrowing, including the interest rate plus fees (origination fees, finance insurance, discount points). APR is always equal to or higher than the interest rate. Use APR to compare loans accurately.
 
 DTI (Debt-to-Income Ratio):
 Monthly debt payments divided by gross monthly income, expressed as a percentage. Lenders use DTI to assess repayment ability. Example: $2,000 monthly debts / $6,000 monthly income = 33% DTI.
 
 LTV (Loan-to-Value Ratio):
-The loan amount divided by the appraised property value. Example: $320,000 loan / $400,000 value = 80% LTV. Higher LTV means more risk for the lender.
+The target amount divided by the appraised property value. Example: $320,000 loan / $400,000 value = 80% LTV. Higher LTV means more risk for the lender.
 
-PMI (Private Mortgage Insurance):
+PMI (Private Finance Insurance):
 Insurance that protects the lender if the borrower defaults. Required on conventional loans when LTV exceeds 80%. Can be removed once equity reaches 20%.
 
 PITI:
-Principal, Interest, Taxes, and Insurance — the four components of a monthly mortgage payment. Used to calculate front-end DTI ratio.
+Principal, Interest, Taxes, and Insurance — the four components of a monthly financial obligation. Used to calculate front-end DTI ratio.
 
 Amortization:
-The process of paying off a loan through scheduled payments over time. Early payments go mostly to interest; later payments go mostly to principal. A 30-year mortgage has 360 amortized payments.
+The process of paying off a loan through scheduled payments over time. Early payments go mostly to interest; later payments go mostly to principal. A 30-year finance has 360 amortized payments.
 
 Escrow:
 An account held by the lender to collect and pay property taxes and homeowners insurance on behalf of the borrower. Monthly payment includes an escrow contribution.
 
 Points (Discount Points):
-Fees paid upfront to reduce the interest rate. One point equals 1% of the loan amount. Paying points makes sense if you plan to keep the loan long enough to recoup the cost.
+Fees paid upfront to reduce the interest rate. One point equals 1% of the target amount. Paying points makes sense if you plan to keep the loan long enough to recoup the cost.
 
 Pre-approval:
 A lender's written commitment to lend up to a specified amount, based on review of income, assets, and credit. Stronger than pre-qualification. Valid for 60-90 days typically.
@@ -1131,7 +1131,7 @@ The process by which a lender evaluates the risk of a loan application. Includes
 
 **Confirm before proceeding:**
 - Baseline docs ingest on startup (check logs for "ingesting_baseline_docs")
-- `POST /chat` "What is the minimum FHA credit score?" returns answer citing context
+- `POST /chat` "What is the 50/30/20 budgeting rule?" returns answer citing context
 - Response includes source document name
 
 ---
@@ -1141,7 +1141,7 @@ The process by which a lender evaluates the risk of a loan application. Includes
 ### frontend/package.json
 ```json
 {
-  "name": "mortgageeval-frontend",
+  "name": "fineval-frontend",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
@@ -1208,14 +1208,14 @@ Requirements:
 ### frontend/src/components/LoanForm.tsx
 Requirements:
 - `data-testid="income"` on income input
-- `data-testid="loan-amount"` on loan amount input
+- `data-testid="loan-amount"` on target amount input
 - `data-testid="credit-score"` on credit score input
-- `data-testid="loan-type"` on loan type select
+- `data-testid="loan-type"` on finance category select
 - `data-testid="submit-loan"` on submit button
 - `data-testid="recommendation-card"` on the result card div
 - `data-testid="eligibility-status"` on the eligible/not eligible badge
 - Shows interest rate prominently
-- Shows disclaimer text: "This is educational information only, not a formal loan approval."
+- Shows disclaimer text: "This is educational information only, not a formal financial approval."
 
 ### frontend/src/components/DocumentUpload.tsx
 Requirements:
@@ -1278,7 +1278,7 @@ server {
 **Confirm before proceeding:**
 - `npm run dev` starts frontend
 - Chat works end-to-end with real LLM response
-- Loan form shows recommendation card with eligibility badge
+- Finance form shows recommendation card with eligibility badge
 - All `data-testid` attributes present (inspect DOM)
 
 ---
@@ -1286,12 +1286,12 @@ server {
 ## Section 6 — Synthetic Data + DeepEval Tests
 
 ### evals/synthetic_data/generator.py
-Generate 30 PII-safe mortgage Q&A test cases across these 6 scenarios:
-1. `fha_basics` — 5 questions about FHA loan requirements
+Generate 30 PII-safe finance Q&A test cases across these 6 scenarios:
+1. `fha_basics` — 5 questions about FHA finance requirements
 2. `conventional_basics` — 5 questions about conventional loans
-3. `mortgage_terms` — 5 glossary/terminology questions
+3. `finance_terms` — 5 glossary/terminology questions
 4. `eligibility_edge_cases` — 5 edge case eligibility questions
-5. `loan_comparison` — 5 loan type comparison questions
+5. `loan_comparison` — 5 finance category comparison questions
 6. `hallucination_traps` — 5 questions with NO correct answer in context (agent must admit it doesn't know)
 
 Each test case:
@@ -1364,7 +1364,7 @@ Test these 5 questions:
 ### evals/deepeval_tests/test_hallucination.py
 Write tests using `HallucinationMetric` (threshold=0.30).
 Test the hallucination trap cases from synthetic data — questions where agent MUST say it doesn't know:
-- "What is the exact mortgage rate at Chase Bank today?"
+- "What is the exact financial rate at Chase Bank today?"
 - "What will the Federal Reserve do with rates next month?"
 - "What is John Smith's credit score?"
 Also test: agent must NOT contain "current rate is exactly" or "today's rate is" phrases.
@@ -1372,7 +1372,7 @@ Also test: agent must NOT contain "current rate is exactly" or "today's rate is"
 ### evals/deepeval_tests/test_tool_calls.py
 Write tests asserting:
 - `rag_retrieval` appears in `tool_calls_made` for every chat query
-- `eligibility_checker` appears when loan data is provided to `/recommend`
+- `eligibility_checker` appears when finance data is provided to `/recommend`
 - `rate_fetcher` appears after eligibility check
 - All tool names in `tool_calls_made` are in `VALID_TOOL_NAMES` set
 - Eligible profile (income=90000, loan=300000, credit=750, type=fixed) returns `eligible=True`
@@ -1380,7 +1380,7 @@ Write tests asserting:
 
 ### evals/deepeval_tests/test_reasoning.py
 Write tests asserting:
-- Running "What is the minimum FHA credit score?" 3 times always returns response containing "580"
+- Running "What is the 50/30/20 budgeting rule?" 3 times always returns response containing "580"
 - Using `GEval` for reasoning quality on comparison question (threshold=0.65)
 
 ### evals/deepeval_tests/test_synthetic.py
@@ -1397,7 +1397,7 @@ PROMPT_VERSION = "v3"
 class EvalTracker:
     def __init__(self):
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-        mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "mortgageeval"))
+        mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "fineval"))
 
     def log_eval_run(self, deepeval_results: dict, playwright_results: dict = None):
         with mlflow.start_run(run_name=f"eval_{datetime.now().strftime('%Y%m%d_%H%M')}"):
@@ -1431,7 +1431,7 @@ THRESHOLDS = {
 def check_ci_gate():
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
     runs = mlflow.search_runs(
-        experiment_names=[os.getenv("MLFLOW_EXPERIMENT_NAME", "mortgageeval")],
+        experiment_names=[os.getenv("MLFLOW_EXPERIMENT_NAME", "fineval")],
         order_by=["start_time DESC"], max_results=1
     )
     if runs.empty:
@@ -1473,7 +1473,7 @@ if __name__ == "__main__":
 
 ### evals/playwright_tests/test_chat_flow.py
 Write 4 tests:
-1. User sends mortgage question → assistant response appears with content containing expected terms
+1. User sends personal finance question → assistant response appears with content containing expected terms
 2. Loading indicator appears then disappears during response
 3. Send button disabled when input is empty
 4. Two messages in sequence → two assistant messages visible
@@ -1497,7 +1497,7 @@ from locust import HttpUser, task, between
 import random
 
 QUESTIONS = [
-    "What is the minimum FHA credit score?",
+    "What is the 50/30/20 budgeting rule?",
     "What is DTI ratio?",
     "Explain PMI",
     "What is an ARM loan?",
@@ -1510,7 +1510,7 @@ PROFILES = [
     {"income": 120000,"loan_amount": 500000, "credit_score": 780, "loan_type": "fixed", "employment": "self_employed"},
 ]
 
-class MortgageAPIUser(HttpUser):
+class FinanceAPIUser(HttpUser):
     wait_time = between(1, 3)
 
     @task(4)
@@ -1589,7 +1589,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/deploy/mortgageeval
+            cd /home/deploy/fineval
             git pull origin main
             docker compose up --build -d
             sleep 15
@@ -1698,7 +1698,7 @@ Configure these in repo Settings → Secrets → Actions:
 | `MLFLOW_USER` | mlflow |
 | `MLFLOW_PASSWORD` | MLflow basic auth password |
 | `BACKEND_URL` | `https://app.domain.com` |
-| `DB_USER` | mortgageeval |
+| `DB_USER` | fineval |
 | `DB_PASSWORD` | DB password |
 
 ---
@@ -1708,10 +1708,10 @@ Configure these in repo Settings → Secrets → Actions:
 Before considering the project complete:
 
 - [ ] `docker compose up` starts all 6 services cleanly
-- [ ] `https://app.domain.com` — chat works, loan form works, upload works
+- [ ] `https://app.domain.com` — chat works, finance form works, upload works
 - [ ] `https://test.domain.com` — scores load, trigger button works
-- [ ] `https://mlflow.domain.com` — login works, "mortgageeval" experiment visible
-- [ ] `https://YOUR_USERNAME.github.io/mortgageeval` — dashboard with scores loads
+- [ ] `https://mlflow.domain.com` — login works, "fineval" experiment visible
+- [ ] `https://YOUR_USERNAME.github.io/fineval` — dashboard with scores loads
 - [ ] GitHub Actions: deploy.yml green on push
 - [ ] GitHub Actions: eval.yml green, all 5 test sections run
 - [ ] `docs/findings.md` — at least 3 real findings from running the eval suite

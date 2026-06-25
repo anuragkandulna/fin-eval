@@ -1,35 +1,70 @@
 from langgraph.graph import StateGraph, START, END
-from app.agent.state import MortgageAgentState
-from app.agent.nodes import rag_node, eligibility_node, rate_node, response_node, guardrail_node
+from app.agent.state import FinanceAgentState
+from app.agent.nodes import (
+    rag_node,
+    budget_node,
+    debt_node,
+    savings_node,
+    response_node,
+    guardrail_node,
+)
 
 
-def should_run_eligibility(state: MortgageAgentState) -> str:
-    if state.get("loan_input") and state.get("flow_type") == "recommend":
-        return "eligibility"
+def _route_after_rag(state: FinanceAgentState) -> str:
+    if state.get("finance_input") and state.get("flow_type") == "analyse":
+        return "budget"
+    if state.get("flow_type") == "summarise":
+        return "response"
+    return "response"
+
+
+def _route_after_budget(state: FinanceAgentState) -> str:
+    fi = state.get("finance_input", {})
+    if fi.get("debts"):
+        return "debt"
+    if fi.get("monthly_savings") or state.get("budget_result", {}).get("actual_savings"):
+        return "savings"
+    return "response"
+
+
+def _route_after_debt(state: FinanceAgentState) -> str:
+    fi = state.get("finance_input", {})
+    if fi.get("monthly_savings") or state.get("budget_result", {}).get("actual_savings"):
+        return "savings"
     return "response"
 
 
 def build_graph():
-    graph = StateGraph(MortgageAgentState)
+    graph = StateGraph(FinanceAgentState)
 
-    graph.add_node("rag", rag_node)
-    graph.add_node("eligibility", eligibility_node)
-    graph.add_node("rate", rate_node)
+    graph.add_node("rag",      rag_node)
+    graph.add_node("budget",   budget_node)
+    graph.add_node("debt",     debt_node)
+    graph.add_node("savings",  savings_node)
     graph.add_node("response", response_node)
     graph.add_node("guardrail", guardrail_node)
 
     graph.add_edge(START, "rag")
     graph.add_conditional_edges(
         "rag",
-        should_run_eligibility,
-        {"eligibility": "eligibility", "response": "response"},
+        _route_after_rag,
+        {"budget": "budget", "response": "response"},
     )
-    graph.add_edge("eligibility", "rate")
-    graph.add_edge("rate", "response")
+    graph.add_conditional_edges(
+        "budget",
+        _route_after_budget,
+        {"debt": "debt", "savings": "savings", "response": "response"},
+    )
+    graph.add_conditional_edges(
+        "debt",
+        _route_after_debt,
+        {"savings": "savings", "response": "response"},
+    )
+    graph.add_edge("savings",  "response")
     graph.add_edge("response", "guardrail")
     graph.add_edge("guardrail", END)
 
     return graph.compile()
 
 
-mortgage_agent = build_graph()
+finance_agent = build_graph()

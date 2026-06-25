@@ -1460,7 +1460,7 @@ wheels = [
 ]
 
 [[package]]
-name = "mortgageeval-backend"
+name = "fineval-backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
