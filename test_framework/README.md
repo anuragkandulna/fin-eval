@@ -8,16 +8,14 @@ test_framework/
 ├── performance/         # Browser timing + Lighthouse CI
 ├── load/                # Async HTTP load tests
 ├── allure-results/      # Allure output (git-ignored except .gitkeep)
-├── requirements.txt
 └── .env.test            # Copy and fill before running
 ```
 
 ## Setup
 
 ```bash
-cd test_framework
-pip install -r requirements.txt
-playwright install chromium
+uv sync --group test-framework
+uv run playwright install chromium
 cp .env.test .env.test.local   # add real values if needed
 ```
 
@@ -25,8 +23,8 @@ cp .env.test .env.test.local   # add real values if needed
 
 ```bash
 cd functional
-pytest tests/ -v --alluredir=../allure-results
-allure serve ../allure-results        # open live report
+uv run pytest tests/ -v --alluredir=../allure-results
+uv run allure serve ../allure-results        # open live report
 ```
 
 **Markers**
@@ -40,31 +38,31 @@ allure serve ../allure-results        # open live report
 | `documents`  | Document upload tests                |
 
 ```bash
-pytest tests/ -m smoke -v                   # smoke only
-pytest tests/ -m "regression and chat" -v   # regression chat tests
+uv run pytest tests/ -m smoke -v                   # smoke only
+uv run pytest tests/ -m "regression and chat" -v   # regression chat tests
 ```
 
 ## Run performance tests
 
 ```bash
 cd performance
-pytest tests/test_navigation_perf.py tests/test_upload_perf.py -v
+uv run pytest tests/test_navigation_perf.py tests/test_upload_perf.py -v
 # HTML report written to performance/reports/
 
 # Lighthouse (requires npx + Chrome)
-pytest tests/test_lighthouse.py -m lighthouse -v
+uv run pytest tests/test_lighthouse.py -m lighthouse -v
 ```
 
 ## Run load tests
 
 ```bash
 cd load
-python runner.py 20 60          # 20 concurrent users × 60 seconds
+uv run python runner.py 20 60          # 20 concurrent users × 60 seconds
 # CSV  → data/results.csv
 # HTML → reports/load_report.html
 
 # Or via pytest
-pytest tests/test_api_load.py -v
+uv run pytest tests/test_api_load.py -v
 ```
 
 ## Environment variables (.env.test)
