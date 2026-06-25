@@ -58,6 +58,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare deploy directory on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_SSH_HOST }}
+          username: ${{ secrets.HOSTINGER_SSH_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          script: |
+            set -eu
+            mkdir -p "${{ secrets.HOSTINGER_DEPLOY_PATH }}"
+
       - name: Copy deployment manifest to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -67,6 +77,7 @@ jobs:
           source: deploy/hostinger/docker-compose.yml
           target: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
           strip_components: 2
+          overwrite: true
 
       - name: Deploy on Hostinger VPS
         uses: appleboy/ssh-action@v1.0.3
