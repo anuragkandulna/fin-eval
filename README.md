@@ -1,10 +1,10 @@
-# MortgageEval
+# FinEval
 
-An agentic AI mortgage assistant with a production-grade evaluation framework. Built to demonstrate Senior AI QA Engineer skills.
+An agentic AI personal finance assistant with a production-grade evaluation framework. Built to demonstrate Senior AI QA Engineer skills.
 
 ## What It Does
 
-- **Mortgage Assistant App** — React + FastAPI + LangGraph agent answers mortgage questions, checks loan eligibility, and processes documents using RAG over mortgage guidelines.
+- **Finance Assistant App** — React + FastAPI + LangGraph agent answers personal finance questions, checks loan eligibility, and processes documents using RAG over finance guidance documents using Qdrant vector search.
 - **Eval Framework** — DeepEval (faithfulness, hallucination, tool-call accuracy) + Playwright E2E + Locust load testing + Lighthouse performance + MLflow experiment tracking with a CI gate.
 
 ## Live URLs
@@ -14,7 +14,7 @@ An agentic AI mortgage assistant with a production-grade evaluation framework. B
 | App | `https://app.yourdomain.com` |
 | Test Dashboard | `https://test.yourdomain.com` |
 | MLflow | `https://mlflow.yourdomain.com` |
-| Eval Reports | `https://YOUR_USERNAME.github.io/mortgageeval` |
+| Eval Reports | `https://anuragkandulna.github.io/fin-eval` |
 
 ## Quick Start (Local)
 
@@ -37,16 +37,16 @@ docker compose up --build
 |-------|-----------|
 | Frontend | React 18 + TypeScript + Vite + TailwindCSS |
 | Backend | FastAPI + Python 3.12 (uv) + Pydantic v2 |
-| Agent | LangGraph + LangChain + OpenAI GPT-3.5-turbo |
-| RAG | ChromaDB + OpenAI embeddings |
-| Database | PostgreSQL 15 + Redis 7 |
+| Agent | LangGraph + LangChain + OpenAI GPT-4o-mini |
+| RAG | Qdrant Cloud + OpenAI embeddings |
+| Database | Azure PostgreSQL (free tier) + Redis 7 |
 | Eval | DeepEval + MLflow + Playwright + Locust + Lighthouse CI |
 | Infra | Docker Compose + Nginx + GitHub Actions |
 
 ## Project Structure
 
 ```
-mortgage-platform/
+fin-eval/
 ├── frontend/          # React 18 + TypeScript (Vite)
 ├── backend/           # FastAPI + uv (Python 3.12)
 ├── test-dashboard/    # React score-card app
@@ -103,7 +103,7 @@ See [.env.example](.env.example) for all required variables. Never commit `.env`
 
 - **Mock-first, then real** — backend starts with mock endpoints (Section 03) before wiring the LangGraph agent (Section 04), so the eval suite can run against known-good responses first.
 - **CI gate via MLflow** — individual test runners use `|| true`; only `ci_gate.py` reads MLflow metrics and calls `sys.exit(1)` on threshold failure, keeping the pipeline unblocked while individual test failures surface clearly.
-- **ChromaDB chunk size = 512 tokens** — fixed to match the eval harness; any change requires an entry in `docs/eval_decisions.md` and a re-run of `test_rag_quality.py`.
+- **Qdrant chunk size = 512 tokens** — fixed to match the eval harness; any change requires an entry in `docs/eval_decisions.md` and a re-run of `test_rag_quality.py`.
 
 ## Build Status
 

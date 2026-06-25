@@ -25,8 +25,12 @@ langgraph==0.1.1
 openai==1.30.1
 
 # RAG
-chromadb==0.5.0
+qdrant-client==1.9.0
+langchain-qdrant==0.1.0
 tiktoken==0.7.0
+
+# Tracing
+langfuse==2.36.0
 
 # Eval logging
 mlflow==2.13.0
@@ -54,12 +58,18 @@ class Settings(BaseSettings):
     database_url: str
     redis_url: str = "redis://localhost:6379"
     
-    # ChromaDB
-    chroma_persist_dir: str = "./chroma_db"
-    
+    # Qdrant
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection: str = "finance_docs"
+
+    # Langfuse
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    langfuse_host: str = "http://localhost:3002"
+
     # MLflow
     mlflow_tracking_uri: str = "http://localhost:5000"
-    mlflow_experiment_name: str = "mortgageeval"
+    mlflow_experiment_name: str = "fineval"
     
     # Thresholds
     faithfulness_threshold: float = 0.70
@@ -93,6 +103,7 @@ class ChatResponse(BaseModel):
     sources: list[str] = []
     tool_calls_made: list[str] = []
     trace_id: str
+    trace_url: str | None = None   # Langfuse deep-link for this request
     eval_scores: Optional[dict] = None
 
 # Loan recommendation
@@ -225,7 +236,7 @@ async def recommend(request: LoanRequest):
         eligible = request.credit_score >= 620 and dti <= 0.43
 
         return LoanResponse(
-            product="30-Year Fixed Rate Mortgage (Mock)",
+            product="30-Year Fixed Rate Finance (Mock)",
             rate=6.75,
             eligible=eligible,
             reasoning=f"Mock reasoning: DTI={dti:.2f}, Credit={request.credit_score}",
@@ -344,14 +355,14 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting MortgageEval API")
+    logger.info("Starting FinEval API")
     await init_db()
     yield
-    logger.info("Shutting down MortgageEval API")
+    logger.info("Shutting down FinEval API")
 
 app = FastAPI(
-    title="MortgageEval API",
-    description="Agentic mortgage assistant with eval framework",
+    title="FinEval API",
+    description="Agentic personal finance assistant with eval framework",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -371,7 +382,7 @@ app.include_router(scores.router)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "mortgageeval-api"}
+    return {"status": "ok", "service": "fineval-api"}
 ```
 
 ---

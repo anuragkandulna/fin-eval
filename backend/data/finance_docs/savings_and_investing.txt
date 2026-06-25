@@ -1,0 +1,40 @@
+Savings and Investment Basics
+
+Emergency Fund First:
+Before any investment, build 3-6 months of expenses in a liquid account.
+No investment return justifies skipping the emergency fund — a single emergency can derail years of investing.
+
+Savings Rate Benchmarks:
+- Minimum: 10% of take-home income
+- Recommended: 20% of take-home income
+- Aggressive wealth building: 30-40% of take-home income
+- FIRE (Financial Independence): 50%+ savings rate
+
+Compound Interest:
+Interest earned on both principal and accumulated interest.
+Rule of 72: divide 72 by annual return rate to estimate doubling time.
+Example: at 8% annual return, money doubles approximately every 9 years (72/8=9).
+Starting early matters more than the amount — time is the most powerful variable.
+
+Investment Options in India (General Information Only):
+PPF (Public Provident Fund): Government-backed, 15-year lock-in, tax-free returns, Section 80C benefit
+EPF (Employees Provident Fund): Mandatory for salaried employees, employer matches contribution
+NPS (National Pension System): Long-term retirement savings, partial tax-free withdrawal at retirement
+Mutual Funds: Pooled investment vehicle — returns vary based on fund type and market conditions
+Fixed Deposits: Capital-protected, lower returns, suitable for conservative investors
+
+SIP (Systematic Investment Plan):
+Investing a fixed amount at regular intervals (typically monthly) in mutual funds.
+Reduces impact of market timing through rupee cost averaging.
+Even small amounts (Rs 500/month) benefit from starting early.
+
+Important Disclaimer:
+Past performance of any investment does not guarantee future returns.
+All investment decisions should be based on individual risk tolerance, time horizon, and financial goals.
+Consult a SEBI-registered financial advisor for personalised investment advice.
+This information is educational only and not financial advice.
+
+Inflation Consideration:
+Indian inflation has historically averaged 5-6% annually.
+Any savings earning less than inflation rate is losing real value over time.
+Keeping large amounts in low-interest savings accounts erodes purchasing power.
