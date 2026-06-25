@@ -1,22 +1,9 @@
 version: '3.8'
 
-services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: fineval
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+# PostgreSQL is hosted on Azure Database for PostgreSQL – Flexible Server (free tier).
+# Set DATABASE_URL and MLFLOW_DB_URL in .env — no local postgres container needed.
 
+services:
   redis:
     image: redis:7-alpine
     ports:
@@ -32,12 +19,9 @@ services:
       - "8000:8000"
     env_file: .env
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
-      - chroma_data:/app/chroma_db
       - ./evals/reports:/app/reports
     restart: unless-stopped
 
@@ -62,21 +46,18 @@ services:
   mlflow:
     image: python:3.11-slim
     command: >
-      bash -c "pip install mlflow psycopg2-binary -q &&
+      bash -c "pip install mlflow -q &&
                mlflow server
-               --backend-store-uri postgresql://${DB_USER}:${DB_PASSWORD}@postgres/mlflow
+               --backend-store-uri sqlite:////mlflow/data/mlflow.db
                --default-artifact-root /mlflow/artifacts
                --host 0.0.0.0 --port 5000"
     ports:
       - "5000:5000"
     volumes:
+      - mlflow_data:/mlflow/data
       - mlflow_artifacts:/mlflow/artifacts
-    depends_on:
-      postgres:
-        condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  pg_data:
-  chroma_data:
+  mlflow_data:
   mlflow_artifacts:

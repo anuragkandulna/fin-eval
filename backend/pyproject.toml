@@ -2,14 +2,15 @@
 name = "fineval-backend"
 version = "0.1.0"
 description = "FastAPI backend for FinEval — AI personal finance assistant with RAG and LangGraph agent"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi==0.111.0",
     "uvicorn[standard]==0.29.0",
     "pydantic>=2.7.4,<3.0.0",
     "pydantic-settings>=2.3.0,<3.0.0",
     "sqlalchemy==2.0.30",
-    "asyncpg==0.29.0",
+    "aioodbc>=0.5.0,<1.0.0",
+    "pyodbc>=5.1.0,<6.0.0",
     "alembic==1.13.1",
     "redis==5.0.4",
     "python-multipart==0.0.9",
@@ -27,6 +28,8 @@ dependencies = [
     "python-dotenv==1.0.1",
     "structlog>=24.1.0,<25.0.0",
     "pypdf>=4.2.0,<5.0.0",
+    "docx2txt>=0.8,<1.0",
+    "greenlet>=3.5.1",
 ]
 
 [dependency-groups]

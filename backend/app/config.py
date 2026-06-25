@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
 
     qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str = ""
     qdrant_collection: str = "finance_docs"
 
     mlflow_tracking_uri: str = "http://localhost:5000"
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     relevancy_threshold: float = 0.75
 
     class Config:
-        env_file = ".env"
+        env_file = (".env", "../.env")  # works from both backend/ and project root
         extra = "ignore"
 
 
