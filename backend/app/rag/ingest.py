@@ -1,4 +1,4 @@
-from langchain_community.document_loaders import TextLoader, PyPDFLoader
+from langchain_community.document_loaders import TextLoader, PyPDFLoader, Docx2txtLoader, CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
@@ -16,7 +16,10 @@ EMBEDDING_DIM = 1536   # text-embedding-ada-002 / text-embedding-3-small
 
 
 def get_vectorstore() -> QdrantVectorStore:
-    client = QdrantClient(url=settings.qdrant_url)
+    client = QdrantClient(
+        url=settings.qdrant_url,
+        api_key=settings.qdrant_api_key or None,
+    )
 
     collections = [c.name for c in client.get_collections().collections]
     if settings.qdrant_collection not in collections:
@@ -37,7 +40,15 @@ def get_vectorstore() -> QdrantVectorStore:
 async def ingest_file(file_path: str, doc_id: str) -> int:
     logger.info("ingesting_file", path=file_path, doc_id=doc_id)
 
-    loader = PyPDFLoader(file_path) if file_path.endswith(".pdf") else TextLoader(file_path)
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == ".pdf":
+        loader = PyPDFLoader(file_path)
+    elif ext == ".docx":
+        loader = Docx2txtLoader(file_path)
+    elif ext == ".csv":
+        loader = CSVLoader(file_path)
+    else:
+        loader = TextLoader(file_path, encoding="utf-8")
     docs = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
@@ -58,7 +69,7 @@ async def ingest_file(file_path: str, doc_id: str) -> int:
 
 async def ingest_directory(dir_path: str) -> None:
     for filename in os.listdir(dir_path):
-        if filename.endswith((".txt", ".pdf")):
+        if filename.endswith((".txt", ".pdf", ".md", ".docx", ".csv")):
             await ingest_file(
                 os.path.join(dir_path, filename),
                 filename.replace(".", "_"),

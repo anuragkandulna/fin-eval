@@ -16,9 +16,11 @@ export default function DocumentUpload() {
     const picked = e.target.files?.[0] ?? null
     setState({ kind: 'idle' })
 
-    if (picked && !picked.name.endsWith('.pdf')) {
+    const ALLOWED = ['.pdf', '.txt', '.md', '.docx', '.csv']
+    const ext = picked ? '.' + picked.name.split('.').pop()!.toLowerCase() : ''
+    if (picked && !ALLOWED.includes(ext)) {
       setFile(null)
-      setState({ kind: 'error', message: 'Only PDF files are accepted.' })
+      setState({ kind: 'error', message: `Unsupported file type. Allowed: ${ALLOWED.join(', ')}` })
       return
     }
     setFile(picked)
@@ -47,13 +49,13 @@ export default function DocumentUpload() {
       </h2>
 
       <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-        <p className="text-sm text-gray-500 mb-4">PDF files only</p>
+        <p className="text-sm text-gray-500 mb-4">PDF, DOCX, TXT, MD, CSV</p>
 
         <input
           ref={inputRef}
           data-testid="file-upload"
           type="file"
-          accept=".pdf"
+          accept=".pdf,.txt,.md,.docx,.csv"
           onChange={onFileChange}
           className="block mx-auto text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
         />

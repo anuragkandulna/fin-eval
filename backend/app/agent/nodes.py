@@ -108,7 +108,7 @@ async def savings_node(state: FinanceAgentState) -> dict:
 
 
 async def response_node(state: FinanceAgentState) -> dict:
-    llm  = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
+    llm  = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=settings.openai_api_key)
     flow = state.get("flow_type", "chat")
 
     if flow == "analyse":
@@ -144,7 +144,7 @@ async def response_node(state: FinanceAgentState) -> dict:
 
 
 async def guardrail_node(state: FinanceAgentState) -> dict:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0, api_key=settings.openai_api_key)
     messages = [
         SystemMessage(content=GUARDRAIL_SYSTEM),
         HumanMessage(content=state["final_response"]),

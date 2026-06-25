@@ -12,8 +12,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload", response_model=DocumentResponse)
 async def upload_document(file: UploadFile = File(...)):
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files accepted")
+    ALLOWED = {".pdf", ".txt", ".md", ".docx", ".csv"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{ext}'. Allowed: {', '.join(sorted(ALLOWED))}",
+        )
 
     doc_id = str(uuid.uuid4())
     file_path = f"{UPLOAD_DIR}/{doc_id}_{file.filename}"
