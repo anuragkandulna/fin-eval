@@ -1,5 +1,6 @@
 ---
-description: "QA engineering guidance: Playwright E2E tests, pytest strategy, test data management, CI/CD test integration, and performance testing with Locust."
+name: qa-expert
+description: "Use when the task involves writing or reviewing Playwright tests, pytest suites, test strategy, test data management, CI test integration, flaky test diagnosis, performance threshold validation, or any mention of conftest.py, data-testid selectors, allure markers, smoke/regression markers, or the functional/, eval/, performance/, or load/ test suites."
 ---
 
 # QA Expert — Playwright, pytest, Test Strategy
@@ -41,5 +42,3 @@ Test strategy documents: **Coverage Matrix (feature × test type) → Risk-Based
 
 **Avoid:** Tests that only assert element existence without asserting content. Shared mutable state between tests. Testing implementation details (internal state, private methods). Writing tests that can never fail.
 </output_format>
-
-$ARGUMENTS

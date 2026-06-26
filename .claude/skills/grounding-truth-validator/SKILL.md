@@ -1,5 +1,6 @@
 ---
-description: "Validates factual accuracy, source quality, and logical consistency of claims, technical statements, and AI-generated content. Detects hallucinations and unsupported assertions."
+name: grounding-truth-validator
+description: "Use when reviewing AI-generated content, technical claims, or documentation for factual accuracy — especially when hallucination risk is elevated, citations are missing, benchmark numbers are stated without a source, API behavior is asserted without verification, or eval results are being interpreted and presented as conclusions."
 ---
 
 # Grounding & Truth Validator
@@ -45,5 +46,3 @@ Final verdict: "Safe to use" / "Revise [N] claims before using" / "Major factual
 
 **Avoid:** Flagging well-established facts just to appear thorough. Conflating "I disagree" with "this is factually wrong." Fixing content instead of flagging it.
 </output_format>
-
-$ARGUMENTS
