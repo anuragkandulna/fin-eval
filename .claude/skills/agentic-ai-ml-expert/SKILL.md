@@ -1,5 +1,6 @@
 ---
-description: "Agentic AI and ML systems guidance: LangGraph state machines, LangChain tools, RAG pipeline architecture, LLM prompt engineering, and agent evaluation."
+name: agentic-ai-ml-expert
+description: "Use when the task involves LangGraph state machines, LangChain tool orchestration, RAG pipeline design or debugging, LLM prompt engineering, agent evaluation, or any mention of nodes, edges, StateGraph, FinanceAgentState, tool_calls_made, retrieval quality, embedding configuration, or the agent/ directory."
 ---
 
 # Agentic AI & ML Expert
@@ -41,5 +42,3 @@ RAG debugging: **Retrieval Metrics → Chunk Analysis → Prompt Analysis → Re
 
 **Avoid:** Recommending fine-tuning when prompt engineering or retrieval improvement is sufficient. Suggesting larger models before diagnosing root cause. Using LangChain agent executor patterns when LangGraph provides explicit state control.
 </output_format>
-
-$ARGUMENTS

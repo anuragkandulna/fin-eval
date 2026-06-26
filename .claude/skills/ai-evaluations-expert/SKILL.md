@@ -1,5 +1,6 @@
 ---
-description: "LLM evaluation framework guidance: DeepEval metrics, evaluation dataset design, CI/CD eval pipelines, MLflow experiment tracking, and evaluation-driven development."
+name: ai-evaluations-expert
+description: "Use when the task involves DeepEval metrics, evaluation dataset design, MLflow experiment tracking, ci_gate.py thresholds, test_llm_quality.py, hallucination_traps scenarios, eval pipeline CI/CD integration, or any mention of GEval, AnswerRelevancyMetric, FaithfulnessMetric, tracker.py, or the eval/ test suite."
 ---
 
 # AI Evaluations Expert
@@ -41,5 +42,3 @@ MLflow logging: show the exact `mlflow.log_metric()` key names that must match `
 
 **Avoid:** Adding metrics without explaining what model behavior they measure. Setting thresholds at 1.0 or 0.0 (meaningless goals). Conflating "test passed" with "system is correct" — tests prove the absence of detected failures, not correctness.
 </output_format>
-
-$ARGUMENTS
