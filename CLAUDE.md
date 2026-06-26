@@ -126,3 +126,48 @@ Individual test runners exit `|| true` so they never block the pipeline. Only `c
 - **Mock-first approach** — backend started with mock endpoints before wiring the real LangGraph agent, so the eval suite could establish a baseline against deterministic responses.
 - **Single-container production** — FastAPI serves both the API and the built React SPA. Nginx terminates TLS in front and proxies to port 8000.
 - **Qdrant chunk size is a contract** — 512 tokens is agreed upon between ingestion and the eval harness; treat it as a versioned setting, not a tuning knob.
+
+## Agent Framework
+
+This project uses a two-layer expert system: **auto-triggered skills** (Claude activates based on context) and **manual slash commands** (explicit user invocation). For the equivalent Codex-compatible version, see [`AGENTS.md`](AGENTS.md).
+
+### Auto-Triggered Skills
+
+Claude loads these automatically when the task context matches the trigger condition.
+
+| Skill | Trigger condition |
+|-------|------------------|
+| `agentic-ai-ml-expert` | LangGraph, LangChain, RAG pipeline, agent state, `tool_calls_made`, `StateGraph`, `FinanceAgentState`, retrieval quality, embeddings, `backend/app/agent/` |
+| `ai-evaluations-expert` | DeepEval, MLflow, `ci_gate.py`, `tracker.py`, eval metrics, `GEval`, `hallucination_traps`, `AnswerRelevancyMetric`, `test_framework/eval/` |
+| `devops-mlops-expert` | Docker build, docker-compose service config, GitHub Actions mechanics, Nginx reverse proxy, MLflow setup, `Dockerfile`, `.github/workflows/`, artifact management — build and delivery pipeline only |
+| `distributed-systems-cloud-expert` | Deployment architecture, where/how to host or scale a service, Azure SQL, Qdrant, Redis caching, connection pooling, retry logic, circuit breakers, fault tolerance, consistency models — regardless of deployment target |
+| `grounding-truth-validator` | AI-generated content review, missing citations, benchmark numbers asserted without source, API behavior claims, eval results presented as conclusions |
+| `qa-expert` | Playwright tests, pytest suites, `conftest.py`, `data-testid`, allure markers, `smoke`/`regression` markers, `functional/`, `eval/`, `performance/`, `load/` suites |
+| `senior-fullstack-developer` | React/TypeScript implementation, FastAPI/Python implementation, API endpoint design, Pydantic models, database queries, any production code change |
+
+### Manual Slash Commands
+
+Invoke these explicitly when you want a specific expert mode.
+
+| Command | When to use |
+|---------|-------------|
+| `/idea-validator` | Validating a new feature idea, product direction, or architectural proposal |
+| `/documentation-expert` | Writing ADRs, runbooks, `docs/eval_decisions.md` entries, README, or API reference |
+| `/system-design-architect` | Designing new system components, major architectural decisions, or trade-off analysis |
+
+## Global Rules
+
+### Never-Do Rules
+
+- **Never** change RAG chunk size from 512 tokens without updating `docs/eval_decisions.md` and re-running `test_rag_quality.py`
+- **Never** remove `|| true` from CI test runner steps — `ci_gate.py` is the only hard gate
+- **Never** add `page.waitForTimeout()` or `time.sleep()` to any test file
+- **Never** use TypeScript `any` without an inline comment explaining why
+- **Never** hardcode secrets in Dockerfiles, compose files, or source code
+- **Never** create LangGraph conditional edges that bypass the `guardrail` node
+- **Never** change `PROMPT_VERSION` without updating the `tool_calls_made` tag and MLflow `log_param("prompt_version", ...)`
+- **Never** use plain dicts for LangGraph state — always TypedDict with Annotated fields
+- **Never** add DeepEval metrics without documenting what model behavior they measure
+- **Never** omit `data-testid` attributes from interactive frontend elements
+- **Never** hardcode threshold values in `ci_gate.py` — must be env-var overridable
+- **Never** use GitHub Actions `@latest` versions — always pin (e.g., `actions/checkout@v4`)
