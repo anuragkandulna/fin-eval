@@ -102,7 +102,7 @@ Node responsibilities: `nodes.py` — each node updates specific keys in `Financ
 
 ### Database
 
-Azure SQL Server (accessed via `aioodbc` + `pyodbc` with ODBC Driver 18). `DATABASE_URL` in `.env` uses the format `mssql://user:pass@host:1433/db`; `database.py` converts this to an ODBC connection string at import time.
+Neon serverless PostgreSQL (accessed via `asyncpg` + SQLAlchemy async). `DATABASE_URL` in `.env` uses the standard PostgreSQL format: `postgresql://user:pass@ep-xxx.region.aws.neon.tech/dbname?sslmode=require`. `database.py` normalises the scheme to `postgresql+asyncpg://` at startup and enforces SSL via `connect_args`.
 
 ### Test framework (`test_framework/` — separate uv workspace)
 
@@ -140,7 +140,7 @@ Claude loads these automatically when the task context matches the trigger condi
 | `agentic-ai-ml-expert` | LangGraph, LangChain, RAG pipeline, agent state, `tool_calls_made`, `StateGraph`, `FinanceAgentState`, retrieval quality, embeddings, `backend/app/agent/` |
 | `ai-evaluations-expert` | DeepEval, MLflow, `ci_gate.py`, `tracker.py`, eval metrics, `GEval`, `hallucination_traps`, `AnswerRelevancyMetric`, `test_framework/eval/` |
 | `devops-mlops-expert` | Docker build, docker-compose service config, GitHub Actions mechanics, Nginx reverse proxy, MLflow setup, `Dockerfile`, `.github/workflows/`, artifact management — build and delivery pipeline only |
-| `distributed-systems-cloud-expert` | Deployment architecture, where/how to host or scale a service, Azure SQL, Qdrant, Redis caching, connection pooling, retry logic, circuit breakers, fault tolerance, consistency models — regardless of deployment target |
+| `distributed-systems-cloud-expert` | Deployment architecture, where/how to host or scale a service, Neon PostgreSQL, Qdrant, Redis caching, connection pooling, retry logic, circuit breakers, fault tolerance, consistency models — regardless of deployment target |
 | `grounding-truth-validator` | AI-generated content review, missing citations, benchmark numbers asserted without source, API behavior claims, eval results presented as conclusions |
 | `qa-expert` | Playwright tests, pytest suites, `conftest.py`, `data-testid`, allure markers, `smoke`/`regression` markers, `functional/`, `eval/`, `performance/`, `load/` suites |
 | `senior-fullstack-developer` | React/TypeScript implementation, FastAPI/Python implementation, API endpoint design, Pydantic models, database queries, any production code change |
