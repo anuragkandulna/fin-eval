@@ -129,7 +129,7 @@ Individual test runners exit `|| true` so they never block the pipeline. Only `c
 
 ## Agent Framework
 
-This project uses a two-layer expert system: **auto-triggered skills** (Claude activates based on context) and **manual slash commands** (explicit user invocation). For the equivalent Codex-compatible version, see [`AGENTS.md`](AGENTS.md).
+This project uses a two-layer expert system: **auto-triggered skills** (Claude activates based on context) and **manual skills** (explicit user invocation). For the equivalent Codex-compatible version, see [`AGENTS.md`](AGENTS.md).
 
 ### Auto-Triggered Skills
 
@@ -137,23 +137,24 @@ Claude loads these automatically when the task context matches the trigger condi
 
 | Skill | Trigger condition |
 |-------|------------------|
-| `agentic-ai-ml-expert` | LangGraph, LangChain, RAG pipeline, agent state, `tool_calls_made`, `StateGraph`, `FinanceAgentState`, retrieval quality, embeddings, `backend/app/agent/` |
-| `ai-evaluations-expert` | DeepEval, MLflow, `ci_gate.py`, `tracker.py`, eval metrics, `GEval`, `hallucination_traps`, `AnswerRelevancyMetric`, `test_framework/eval/` |
-| `devops-mlops-expert` | Docker build, docker-compose service config, GitHub Actions mechanics, Nginx reverse proxy, MLflow setup, `Dockerfile`, `.github/workflows/`, artifact management — build and delivery pipeline only |
-| `distributed-systems-cloud-expert` | Deployment architecture, where/how to host or scale a service, Neon PostgreSQL, Qdrant, Redis caching, connection pooling, retry logic, circuit breakers, fault tolerance, consistency models — regardless of deployment target |
-| `grounding-truth-validator` | AI-generated content review, missing citations, benchmark numbers asserted without source, API behavior claims, eval results presented as conclusions |
-| `qa-expert` | Playwright tests, pytest suites, `conftest.py`, `data-testid`, allure markers, `smoke`/`regression` markers, `functional/`, `eval/`, `performance/`, `load/` suites |
-| `senior-fullstack-developer` | React/TypeScript implementation, FastAPI/Python implementation, API endpoint design, Pydantic models, database queries, any production code change |
+| `agentic-ai-ml-expert` | LangGraph, LangChain, RAG pipeline, agent state, multi-agent, MCP, A2A, ReAct, Reflection, Langfuse, agent failure recovery, `tool_calls_made`, `StateGraph`, `FinanceAgentState`, retrieval quality, embeddings, `backend/app/agent/` |
+| `ai-evaluations-expert` | DeepEval, MLflow, `ci_gate.py`, `tracker.py`, red teaming, NIST AI RMF, bias testing, production monitoring, `GEval`, `hallucination_traps`, `AnswerRelevancyMetric`, `test_framework/eval/`, grounding, missing citations, benchmark claims |
+| `devops-mlops-expert` | Docker build, docker-compose, GitHub Actions, Nginx, MLflow setup, `Dockerfile`, `.github/workflows/`, model lifecycle, canary deployment, LLM monitoring (token usage, refusal rates, guardrail trigger rates), model versioning — build and delivery pipeline only |
+| `distributed-systems-cloud-expert` | Deployment architecture, Neon PostgreSQL, Qdrant scaling, Redis semantic caching, LLM API cost management, multi-model routing, connection pooling, retry logic, circuit breakers, fault tolerance, consistency models — regardless of deployment target |
+| `prompt-engineer` | `prompts.py`, `PROMPT_VERSION`, guardrail node, structured output prompting, chain-of-thought, constitutional AI, A/B testing prompts, hallucination reduction, prompt injection defense, `FinanceAgentState` messages |
+| `qa-expert` | Playwright tests, pytest suites, `conftest.py`, `data-testid`, allure markers, `smoke`/`regression` markers, non-determinism in AI tests, adversarial test cases, multi-turn conversation testing, `functional/`, `eval/`, `performance/`, `load/` suites |
+| `security-reviewer` | MITRE ATLAS, OWASP LLM Top 10, NIST AI RMF, NeMo guardrails, prompt injection, vector store poisoning, RAG data exfiltration, model supply chain, hardcoded secrets, CORS, file upload security, FastAPI route security |
+| `senior-fullstack-developer` | React/TypeScript implementation, FastAPI/Python implementation, streaming LLM responses, AI error handling (rate limits, refusals, timeouts), tool call progress UI, API endpoint design, Pydantic models, database queries, any production code change |
 
-### Manual Slash Commands
+### Manual Skills
 
-Invoke these explicitly when you want a specific expert mode.
+Invoke these explicitly when you want a specific expert mode. Each skill follows a strict **research → present options → user approval → execute** protocol and will not write any output until the user explicitly selects an approach.
 
-| Command | When to use |
-|---------|-------------|
-| `/idea-validator` | Validating a new feature idea, product direction, or architectural proposal |
-| `/documentation-expert` | Writing ADRs, runbooks, `docs/eval_decisions.md` entries, README, or API reference |
-| `/system-design-architect` | Designing new system components, major architectural decisions, or trade-off analysis |
+| Skill | When to invoke |
+|-------|----------------|
+| `idea-validator` | Validating a new feature idea, product direction, or architectural proposal |
+| `documentation-expert` | Writing ADRs, runbooks, `docs/eval_decisions.md` entries, README, or API reference |
+| `system-design-architect` | Designing new system components, major architectural decisions, or trade-off analysis |
 
 ## Global Rules
 
