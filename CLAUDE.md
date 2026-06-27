@@ -144,7 +144,8 @@ Claude loads these automatically when the task context matches the trigger condi
 | `prompt-engineer` | `prompts.py`, `PROMPT_VERSION`, guardrail node, structured output prompting, chain-of-thought, constitutional AI, A/B testing prompts, hallucination reduction, prompt injection defense, `FinanceAgentState` messages |
 | `qa-expert` | Playwright tests, pytest suites, `conftest.py`, `data-testid`, allure markers, `smoke`/`regression` markers, non-determinism in AI tests, adversarial test cases, multi-turn conversation testing, `functional/`, `eval/`, `performance/`, `load/` suites |
 | `security-reviewer` | MITRE ATLAS, OWASP LLM Top 10, NIST AI RMF, NeMo guardrails, prompt injection, vector store poisoning, RAG data exfiltration, model supply chain, hardcoded secrets, CORS, file upload security, FastAPI route security |
-| `senior-fullstack-developer` | React/TypeScript implementation, FastAPI/Python implementation, streaming LLM responses, AI error handling (rate limits, refusals, timeouts), tool call progress UI, API endpoint design, Pydantic models, database queries, any production code change |
+| `senior-fullstack-developer` | FastAPI/Python backend implementation, streaming LLM response handling, AI error handling (rate limits, refusals, timeouts), API endpoint design, Pydantic models, database queries, any production code change requiring type safety and structured logging |
+| `ui-ux-expert` | React component design, user experience decisions, accessibility (WCAG, a11y, ARIA), Core Web Vitals (LCP/CLS/INP), Tailwind component architecture, consumer app polish, enterprise UI patterns (data tables, dashboards, complex forms), AI-specific UX (streaming response UI, loading states, tool call progress, uncertainty communication), chat interface, financial data display, `frontend/` |
 
 ### Manual Skills
 
@@ -158,17 +159,33 @@ Invoke these explicitly when you want a specific expert mode. Each skill follows
 
 ## Global Rules
 
+### Permission Gate — Skills & Agent Docs
+
+**Before making any change to the files below, state the intended change and wait for explicit user approval ("yes", "proceed", or equivalent). Do not draft or apply changes speculatively.**
+
+- `CLAUDE.md` (this file)
+- `AGENTS.md`
+- `.claude/skills/**/*.md`
+- `.claude/commands/**/*.md`
+
 ### Never-Do Rules
 
+- **Never** modify `CLAUDE.md`, `AGENTS.md`, or `.claude/skills/**` without explicit user approval
 - **Never** change RAG chunk size from 512 tokens without updating `docs/eval_decisions.md` and re-running `test_rag_quality.py`
 - **Never** remove `|| true` from CI test runner steps — `ci_gate.py` is the only hard gate
 - **Never** add `page.waitForTimeout()` or `time.sleep()` to any test file
 - **Never** use TypeScript `any` without an inline comment explaining why
 - **Never** hardcode secrets in Dockerfiles, compose files, or source code
 - **Never** create LangGraph conditional edges that bypass the `guardrail` node
-- **Never** change `PROMPT_VERSION` without updating the `tool_calls_made` tag and MLflow `log_param("prompt_version", ...)`
+- **Never** change `PROMPT_VERSION` without the full version bump protocol (`tool_calls_made` tag + MLflow param + `docs/eval_decisions.md` entry)
 - **Never** use plain dicts for LangGraph state — always TypedDict with Annotated fields
 - **Never** add DeepEval metrics without documenting what model behavior they measure
 - **Never** omit `data-testid` attributes from interactive frontend elements
 - **Never** hardcode threshold values in `ci_gate.py` — must be env-var overridable
 - **Never** use GitHub Actions `@latest` versions — always pin (e.g., `actions/checkout@v4`)
+- **Never** deploy a prompt or model change without a pre-deploy eval run
+- **Never** use bare `except Exception` in LLM call wrappers — catch specific OpenAI exception types
+- **Never** create an agent loop without a maximum iteration guard
+- **Never** weaken guardrail constraints to improve helpfulness or tone scores
+- **Never** use `allow_origins=["*"]` in production — restrict CORS to `settings.domain`
+- **Never** use fire-and-forget Qdrant writes for user-initiated document uploads — use `wait=True`
