@@ -1,25 +1,32 @@
-import urllib.parse
-from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+import ssl
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
-# Build an aioodbc ODBC connection string from the DATABASE_URL.
-# DATABASE_URL format in .env: mssql://user:pass@server:1433/database
-_u = make_url(settings.database_url)
-_odbc = (
-    f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-    f"SERVER=tcp:{_u.host},{_u.port or 1433};"
-    f"DATABASE={_u.database};"
-    f"UID={_u.username};"
-    f"PWD={_u.password};"
-    f"Encrypt=yes;TrustServerCertificate=no;MARS_Connection=yes;"
+
+def _build_async_url(url: str) -> str:
+    """Normalise a postgresql:// or postgres:// URL to the asyncpg dialect.
+
+    Neon passes ?sslmode=require in the URL; asyncpg does not recognise that
+    query parameter so it is stripped — SSL is enforced via connect_args.
+    """
+    for prefix in ("postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            base = url.replace(prefix, "postgresql+asyncpg://", 1)
+            # Drop any query string; SSL handled by connect_args below
+            return base.split("?")[0]
+    raise ValueError(f"Unsupported DATABASE_URL scheme: {url!r}")
+
+
+_ssl_ctx = ssl.create_default_context()
+
+engine = create_async_engine(
+    _build_async_url(settings.database_url),
+    echo=False,
+    connect_args={"ssl": _ssl_ctx},
 )
-_async_url = f"mssql+aioodbc:///?odbc_connect={urllib.parse.quote_plus(_odbc)}"
 
-engine = create_async_engine(_async_url, echo=False)
-
-AsyncSessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
 
