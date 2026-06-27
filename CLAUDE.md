@@ -166,7 +166,7 @@ Invoke these explicitly when you want a specific expert mode. Each skill follows
 - `CLAUDE.md` (this file)
 - `AGENTS.md`
 - `.claude/skills/**/*.md`
-- `.claude/commands/**/*.md`
+- `.claude/agents/**/*.md`
 
 ### Never-Do Rules
 
