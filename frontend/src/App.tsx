@@ -1,23 +1,27 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import NavBar from './components/NavBar'
-import Chat from './pages/Chat'
-import Analyse from './pages/Analyse'
+import { ThemeProvider } from './contexts/ThemeContext'
+import NavBar    from './components/NavBar'
+import Dashboard from './pages/Dashboard'
 import Documents from './pages/Documents'
+import Reports   from './pages/Reports'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <NavBar />
-        <main className="max-w-3xl mx-auto px-4 py-6">
+    <ThemeProvider>
+      <BrowserRouter>
+        <div className="flex flex-col min-h-screen bg-snow text-ink">
+          <NavBar />
           <Routes>
-            <Route path="/"          element={<Chat />} />
-            <Route path="/analyse"   element={<Analyse />} />
+            <Route path="/"          element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
+            <Route path="/reports"   element={<Reports />} />
+            {/* Legacy routes — redirect to home */}
+            <Route path="/analyse"   element={<Navigate to="/" replace />} />
+            <Route path="/chat"      element={<Navigate to="/" replace />} />
             <Route path="*"          element={<Navigate to="/" replace />} />
           </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+        </div>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
