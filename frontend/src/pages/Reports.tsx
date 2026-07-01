@@ -3,11 +3,9 @@ import MobileBottomNav from '../components/MobileBottomNav'
 
 export default function Reports() {
   return (
-    <div className="flex flex-col flex-1" style={{ height: 'calc(100vh - 48px)' }}>
+    <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 flex flex-col items-center justify-center gap-4 p-16 text-center">
-        <div
-          className="w-16 h-16 rounded-lg bg-brand-tint flex items-center justify-center"
-        >
+        <div className="w-16 h-16 rounded-lg bg-brand-tint flex items-center justify-center">
           <IconChartBar size={32} stroke={1.5} className="text-brand" />
         </div>
         <div>

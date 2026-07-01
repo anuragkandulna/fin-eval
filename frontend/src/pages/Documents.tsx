@@ -59,7 +59,7 @@ export default function Documents() {
   }
 
   return (
-    <div className="flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 48px)' }}>
+    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       <div className="flex flex-1 overflow-hidden">
 
         {/* Main content */}

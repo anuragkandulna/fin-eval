@@ -138,10 +138,8 @@ export default function ChatPanel() {
           </button>
         </div>
 
-        <div className="flex justify-end mt-1.5 gap-2 text-[10px] text-secondary">
-          <span className="font-mono">prompt v3</span>
-          <span>·</span>
-          <span className="text-pass font-medium">eval gate passed</span>
+        <div className="flex justify-end mt-1.5">
+          <span className="text-[10px] text-secondary font-mono">prompt v3</span>
         </div>
       </div>
     </div>
