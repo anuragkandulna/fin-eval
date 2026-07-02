@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { IconLayoutDashboard, IconMessage, IconFileText } from '@tabler/icons-react'
+import { IconFileText, IconLayoutDashboard, IconMessage, IconUserCircle } from '@tabler/icons-react'
 
-type Tab = 'dashboard' | 'chat' | 'docs'
+type Tab = 'dashboard' | 'chat' | 'docs' | 'personal'
 
 interface Props {
   activeTab: Tab
@@ -37,6 +37,12 @@ export default function MobileBottomNav({ activeTab, onDashboardClick, onChatCli
       label:   'Docs',
       Icon:    IconFileText,
       onClick: () => navigate('/documents'),
+    },
+    {
+      id:      'personal' as Tab,
+      label:   'Personal',
+      Icon:    IconUserCircle,
+      onClick: () => navigate('/personal'),
     },
   ]
 

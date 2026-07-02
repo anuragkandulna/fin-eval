@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   IconX,
+  IconAlertTriangle,
   IconCloudUpload,
   IconFile,
   IconFileTypePdf,
@@ -44,7 +45,15 @@ async function stubUploadFile(_file: File, onProgress: (p: number) => void): Pro
 export default function UploadModal({ onClose }: Props) {
   const [files,      setFiles]      = useState<FileItem[]>([])
   const [isDragging, setIsDragging] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef   = useRef<HTMLInputElement>(null)
+  const closeRef   = useRef<HTMLButtonElement>(null)
+
+  // Move focus to close button on open; return focus to trigger on unmount
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    closeRef.current?.focus()
+    return () => { previous?.focus() }
+  }, [])
 
   const addFiles = useCallback((incoming: FileList | File[]) => {
     const arr = Array.from(incoming)
@@ -95,15 +104,23 @@ export default function UploadModal({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4"
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+      onKeyDown={e => { if (e.key === 'Escape') onClose() }}
+    >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upload-modal-title"
         className="bg-card rounded-xl w-[540px] max-w-full max-h-[82vh] flex flex-col shadow-xl"
         style={{ border: '0.5px solid var(--color-border)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 separator-soft-b flex-shrink-0">
-          <p className="text-sm font-semibold text-ink">Upload Documents</p>
+          <p id="upload-modal-title" className="text-sm font-semibold text-ink">Upload Documents</p>
           <button
+            ref={closeRef}
             data-testid="upload-modal-close"
             onClick={onClose}
             aria-label="Close upload modal"
@@ -147,6 +164,19 @@ export default function UploadModal({ onClose }: Props) {
               e.target.value = ''
             }}
           />
+        </div>
+
+        <div
+          className="mx-5 mt-3 rounded-lg px-3 py-2.5 flex items-start gap-2"
+          style={{
+            background: 'color-mix(in srgb, var(--color-warn) 12%, var(--color-card))',
+            border: '1px solid color-mix(in srgb, var(--color-warn) 30%, var(--color-border))',
+          }}
+        >
+          <IconAlertTriangle size={15} stroke={1.8} className="text-warn flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-ink leading-relaxed">
+            Demo notice: uploaded files are for product demonstration only. Avoid sensitive personal data in this environment.
+          </p>
         </div>
 
         {/* File list */}

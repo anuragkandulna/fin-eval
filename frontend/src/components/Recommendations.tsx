@@ -47,7 +47,7 @@ export default function Recommendations() {
       {/* Actionable items */}
       <div className="flex flex-col gap-3">
         {RECS.map(r => (
-          <div key={r.title} className="flex gap-3 items-start">
+          <div key={r.title} data-testid={`rec-${r.title.toLowerCase().replace(/\s+/g, '-')}`} className="flex gap-3 items-start">
             <span
               className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
               style={{ backgroundColor: r.color }}

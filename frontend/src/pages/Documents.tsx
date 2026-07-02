@@ -143,6 +143,9 @@ export default function Documents() {
               <button
                 data-testid="doc-filter"
                 onClick={() => setFilterOpen(p => !p)}
+                aria-haspopup="listbox"
+                aria-expanded={filterOpen}
+                aria-label={`Sort by: ${filterBy === 'none' ? 'default' : FILTER_OPTIONS.find(o => o.value === filterBy)?.label}`}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
                   filterBy !== 'none'
                     ? 'text-brand bg-brand-tint'
@@ -155,24 +158,32 @@ export default function Documents() {
               </button>
 
               {filterOpen && (
-                <div
-                  className="absolute top-full mt-1 left-0 z-30 bg-card rounded-lg py-1 min-w-[168px] shadow-lg"
+                <ul
+                  role="listbox"
+                  aria-label="Sort options"
+                  className="absolute top-full mt-1 left-0 z-30 bg-card rounded-lg py-1 min-w-[168px] shadow-lg list-none m-0 p-0"
                   style={{ border: '0.5px solid var(--color-border)' }}
                 >
                   {FILTER_OPTIONS.map(opt => (
-                    <button
+                    <li
                       key={opt.value}
-                      onClick={() => { setFilterBy(opt.value); setFilterOpen(false) }}
-                      className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                        filterBy === opt.value
-                          ? 'text-brand bg-brand-tint'
-                          : 'text-ink hover:bg-brand-tint'
-                      }`}
+                      role="option"
+                      aria-selected={filterBy === opt.value}
                     >
-                      {opt.label}
-                    </button>
+                      <button
+                        data-testid={`doc-filter-${opt.value}`}
+                        onClick={() => { setFilterBy(opt.value); setFilterOpen(false) }}
+                        className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                          filterBy === opt.value
+                            ? 'text-brand bg-brand-tint'
+                            : 'text-ink hover:bg-brand-tint'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </div>
 
@@ -228,7 +239,9 @@ export default function Documents() {
               return (
                 <button
                   key={tab.value}
+                  data-testid={`doc-cat-${tab.value}`}
                   onClick={() => setActiveCat(tab.value)}
+                  aria-pressed={activeCat === tab.value}
                   className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs transition-colors ${
                     activeCat === tab.value
                       ? 'bg-brand text-white font-medium'

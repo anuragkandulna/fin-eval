@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ElementType, type ReactNode } from 'react'
 import {
   IconUser,
   IconBriefcase,
@@ -14,7 +14,7 @@ import DisclaimerBar  from '../components/DisclaimerBar'
 import MobileBottomNav from '../components/MobileBottomNav'
 
 /* ── Section wrapper ─────────────────────────────────────────── */
-function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+function Section({ title, icon: Icon, children }: { title: string; icon: ElementType; children: ReactNode }) {
   return (
     <div className="bg-card rounded-lg border-thin overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 separator-soft-b">
@@ -138,8 +138,8 @@ export default function PersonalData() {
   const [incomeExpanded, setIncomeExpanded] = useState(true)
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-      <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5 min-h-0">
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="min-h-full px-5 py-5 pb-24 md:pb-8 flex flex-col gap-5">
 
         {/* Page title */}
         <div className="flex items-center justify-between">
@@ -282,7 +282,7 @@ export default function PersonalData() {
       </div>
 
       <DisclaimerBar />
-      <MobileBottomNav activeTab="dashboard" />
+      <MobileBottomNav activeTab="personal" />
     </div>
   )
 }

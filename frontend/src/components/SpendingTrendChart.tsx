@@ -1,11 +1,12 @@
 const DATA   = [38, 41, 40, 44, 47, 54]
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
 
-const W = 500, H = 120
-const PL = 10, PR = 10, PT = 15, PB = 28
+const W = 500, H = 148
+const PL = 42, PR = 16, PT = 12, PB = 32
 const CW = W - PL - PR
 const CH = H - PT - PB
 const MIN = 35, MAX = 56
+const Y_TICKS = [35, 42, 49, 56]
 
 export default function SpendingTrendChart() {
   const pts = DATA.map((v, i) => ({
@@ -31,9 +32,13 @@ export default function SpendingTrendChart() {
         </linearGradient>
       </defs>
 
-      {gridYs.map(y => (
-        <line key={y} x1={PL} y1={y} x2={W - PR} y2={y}
-          stroke="var(--color-grid)" strokeWidth="0.5" />
+      {gridYs.map((y, index) => (
+        <g key={y}>
+          <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="var(--color-grid)" strokeWidth="0.5" />
+          <text x={PL - 8} y={y + 3} textAnchor="end" fontSize="10" fill="var(--color-secondary)">
+            {Y_TICKS[index]}k
+          </text>
+        </g>
       ))}
 
       <path d={area} fill="url(#spend-area)" />

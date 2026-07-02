@@ -10,7 +10,7 @@ const MAX_AMOUNT = CATEGORIES[0].amount
 
 export default function TopSpendingCategories() {
   return (
-    <div className="bg-card rounded-lg border-thin p-4 flex flex-col gap-3 h-full">
+    <div data-testid="chart-top-categories" className="bg-card rounded-lg border-thin p-4 flex flex-col gap-3 h-full">
       <p className="text-sm font-semibold text-ink">Top categories</p>
 
       <div className="flex flex-col gap-3">
@@ -24,7 +24,7 @@ export default function TopSpendingCategories() {
                 >
                   {i + 1}
                 </span>
-                <span className="text-xs text-ink truncate">{cat.name}</span>
+                <span className="text-xs text-ink break-words">{cat.name}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {cat.wowDir !== 'flat' && (

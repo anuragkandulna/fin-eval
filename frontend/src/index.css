@@ -91,6 +91,32 @@ code, .font-mono {
     var(--color-card);
   box-shadow: -24px 0 48px -32px var(--pane-shadow);
 }
+.pane-surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    var(--color-card);
+  border: 1px solid var(--separator-hairline);
+  box-shadow:
+    0 20px 48px -36px var(--pane-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+.pane-divider {
+  position: relative;
+}
+.pane-divider::before {
+  content: '';
+  position: absolute;
+  inset: 14px auto 14px 0;
+  width: 1px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--separator-hairline) 18%,
+      var(--separator-hairline) 82%,
+      transparent 100%
+    );
+}
 
 /* ─── Status chip utilities ───────────────────────────────── */
 .status-pass { background: #DCFCE7; color: #166534; }

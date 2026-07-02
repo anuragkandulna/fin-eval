@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconEdit, IconSend, IconMinus, IconMaximize, IconMinimize, IconX, IconPlus } from '@tabler/icons-react'
-import { useChat } from '../contexts/ChatContext'
+import { useChat, type ChatMessage } from '../contexts/ChatContext'
 
 interface Props {
   /** show minimize → collapsed */
@@ -30,6 +30,37 @@ const PAGE_PROMPTS: Record<string, string[]> = {
   '/reports':   ["Give me a monthly summary", "What changed since last month?", "Where can I save more?"],
 }
 
+const CHAT_SESSIONS: { id: string; title: string; timestamp: string; seed: ChatMessage[] }[] = [
+  {
+    id: 'budget-review',
+    title: 'Budget review June',
+    timestamp: '2h ago',
+    seed: [
+      { id: 'b1', role: 'assistant', text: 'Hi Anurag. Health score is 74 — good, but savings rate is just below target. Want to close the gap?' },
+      { id: 'b2', role: 'user', text: 'Why is my savings rate only 18%?' },
+      { id: 'b3', role: 'assistant', text: 'Your wants at 24% is eating into savings. Cut ₹2,000/month there to hit 20%.' },
+    ],
+  },
+  {
+    id: 'tax-headroom',
+    title: 'Section 80C deductions',
+    timestamp: '3 weeks ago',
+    seed: [
+      { id: 't1', role: 'user', text: 'What about my 80C headroom?' },
+      { id: 't2', role: 'assistant', text: '₹34,000 of 80C remains. An ELSS top-up before March 31 would use it efficiently.' },
+    ],
+  },
+  {
+    id: 'debt-plan',
+    title: 'Credit card payoff plan',
+    timestamp: 'Yesterday',
+    seed: [
+      { id: 'd1', role: 'user', text: 'How fast can I clear my credit card?' },
+      { id: 'd2', role: 'assistant', text: 'At your current EMI pace, you clear it in about 8 months. A ₹3,000 top-up would shorten that by roughly 6 weeks.' },
+    ],
+  },
+]
+
 async function mockSend(message: string): Promise<string> {
   await new Promise(r => setTimeout(r, 800))
   return `Backend not connected yet. You asked: "${message}". See docs/api-endpoints.md for the /chat endpoint spec.`
@@ -39,6 +70,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
   const { messages, setMessages } = useChat()
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
+  const [activeSessionId, setActiveSessionId] = useState<string | null>('budget-review')
   const bottomRef = useRef<HTMLDivElement>(null)
   const location  = useLocation()
 
@@ -53,6 +85,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
   const send = async (text?: string) => {
     const msg = (text ?? input).trim()
     if (!msg || loading) return
+    setActiveSessionId(null)
     setInput('')
     setMessages(prev => [...prev, { id: String(Date.now()), role: 'user', text: msg }])
     setLoading(true)
@@ -64,16 +97,33 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
     }
   }
 
-  const newChat = () => setMessages([])
+  const newChat = () => {
+    setActiveSessionId(null)
+    setMessages([])
+  }
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const openSession = (sessionId: string) => {
+    const session = CHAT_SESSIONS.find(item => item.id === sessionId)
+    if (!session) return
+    setActiveSessionId(sessionId)
+    setMessages(session.seed.map(message => ({ ...message })))
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
+  }
+
+  // Auto-resize textarea up to 4 rows
+  const onTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+    e.target.style.height = 'auto'
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`
   }
 
   const headerH = compact ? 'py-2.5' : 'py-3'
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full bg-card overflow-hidden">
 
       {/* Header */}
       <div className={`px-4 ${headerH} flex items-center gap-2 flex-shrink-0 separator-soft-b`}>
@@ -89,6 +139,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
 
         <div className="flex items-center gap-0.5">
           <button
+            data-testid="chat-new-session"
             onClick={newChat}
             title="New chat"
             className="w-7 h-7 flex items-center justify-center rounded text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
@@ -97,6 +148,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
           </button>
           {onDock && (
             <button
+              data-testid="chat-dock-button"
               title="Dock to panel"
               onClick={onDock}
               className="w-7 h-7 flex items-center justify-center rounded text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
@@ -106,6 +158,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
           )}
           {onUndock && (
             <button
+              data-testid="chat-undock-button"
               title="Undock"
               onClick={onUndock}
               className="w-7 h-7 flex items-center justify-center rounded text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
@@ -115,6 +168,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
           )}
           {onMinimize && (
             <button
+              data-testid="chat-minimize-button"
               title="Minimise"
               onClick={onMinimize}
               className="w-7 h-7 flex items-center justify-center rounded text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
@@ -124,6 +178,7 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
           )}
           {onClose && (
             <button
+              data-testid="chat-close-button"
               title="Close"
               onClick={onClose}
               className="w-7 h-7 flex items-center justify-center rounded text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
@@ -145,8 +200,41 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
         </div>
       )}
 
+      <div
+        className="px-4 py-3 flex-shrink-0 separator-soft-b"
+        style={{ background: 'linear-gradient(180deg, var(--color-card), var(--color-snow))' }}
+      >
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-secondary">
+            Recent sessions
+          </span>
+          <span className="text-[10px] font-mono text-secondary">{CHAT_SESSIONS.length} saved</span>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {CHAT_SESSIONS.map(session => (
+            <button
+              key={session.id}
+              data-testid={`chat-session-${session.id}`}
+              onClick={() => openSession(session.id)}
+              className={`min-w-[160px] rounded-xl px-3 py-2 text-left transition-colors ${
+                activeSessionId === session.id ? 'bg-brand-tint border-accent' : 'bg-snow border-thin hover:bg-brand-tint'
+              }`}
+            >
+              <p className="text-xs font-medium text-ink truncate">{session.title}</p>
+              <p className="text-[11px] text-secondary mt-0.5">{session.timestamp}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+      <div
+        role="log"
+        aria-live="polite"
+        aria-busy={loading}
+        aria-label="Chat messages"
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0 bg-card"
+      >
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-4 px-2">
             <div className="w-10 h-10 rounded-xl bg-brand-tint flex items-center justify-center">
@@ -157,9 +245,10 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
               <p className="text-xs text-secondary">Ask anything about your finances</p>
             </div>
             <div className="flex flex-col gap-2 w-full mt-2">
-              {suggestions.map(s => (
+              {suggestions.map((s, idx) => (
                 <button
                   key={s}
+                  data-testid={`chat-suggestion-${idx}`}
                   onClick={() => send(s)}
                   className="text-left text-xs text-ink bg-snow rounded-lg px-3 py-2 hover:bg-brand-tint transition-colors border-thin leading-snug"
                 >
@@ -181,10 +270,17 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
                   )}
                   <div
                     className="text-sm text-ink rounded-lg rounded-tl-sm px-3 py-2.5 leading-relaxed"
-                    style={{ background: 'var(--color-brand-tint)', border: '0.5px solid var(--color-grid)' }}
+                    style={{
+                      background: 'linear-gradient(180deg, color-mix(in srgb, var(--color-brand-tint) 92%, transparent), var(--color-card))',
+                      border: '1px solid color-mix(in srgb, var(--color-brand) 22%, var(--color-border))',
+                      boxShadow: '0 10px 24px -20px var(--pane-shadow)',
+                    }}
                   >
                     {msg.text}
                   </div>
+                  <p className="text-[10px] text-secondary mt-0.5 pl-0.5">
+                    AI-generated — verify with a qualified advisor
+                  </p>
                 </div>
               ) : (
                 <div key={msg.id} data-testid="user-message" className="flex justify-end">
@@ -210,14 +306,16 @@ export default function ChatPanel({ onMinimize, onDock, onUndock, onClose, compa
       {/* Input */}
       <div className="px-4 py-3 flex-shrink-0 separator-soft-t">
         <div className="flex gap-2 items-center">
-          <input
+          <textarea
             data-testid="chat-input"
-            type="text"
+            rows={1}
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={onTextareaChange}
             onKeyDown={onKeyDown}
             placeholder="Ask about your finances…"
-            className="flex-1 text-sm bg-snow text-ink rounded-md px-3 py-2 outline-none placeholder:text-secondary"
+            aria-label="Message input. Press Enter to send, Shift+Enter for new line."
+            disabled={loading}
+            className="flex-1 text-sm bg-snow text-ink rounded-md px-3 py-2 outline-none placeholder:text-secondary resize-none overflow-hidden"
             style={{ border: '0.5px solid var(--color-border)' }}
           />
           <button

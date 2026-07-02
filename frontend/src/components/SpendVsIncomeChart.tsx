@@ -7,12 +7,12 @@ const DATA = [
   { month: 'Jun', income: 80000, spend: 68000 },
 ]
 
-const W = 360
-const H = 140
+const W = 420
+const H = 168
 const PAD_L = 36
-const PAD_R = 8
-const PAD_T = 8
-const PAD_B = 24
+const PAD_R = 12
+const PAD_T = 14
+const PAD_B = 30
 const CHART_W = W - PAD_L - PAD_R
 const CHART_H = H - PAD_T - PAD_B
 const MAX_VAL = 90000
@@ -31,7 +31,7 @@ const Y_TICKS = [0, 20000, 40000, 60000, 80000]
 
 export default function SpendVsIncomeChart() {
   return (
-    <div>
+    <div data-testid="chart-spend-vs-income">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
         {/* Y-axis ticks */}
         {Y_TICKS.map(t => {
@@ -74,13 +74,7 @@ export default function SpendVsIncomeChart() {
                 opacity={0.75}
               />
               {/* Month label */}
-              <text
-                x={cx}
-                y={H - 6}
-                textAnchor="middle"
-                fontSize={9}
-                fill="var(--color-secondary)"
-              >
+              <text x={cx} y={H - 7} textAnchor="middle" fontSize={9.5} fill="var(--color-secondary)">
                 {d.month}
               </text>
             </g>

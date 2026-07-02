@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { IconSun, IconMoon, IconMenu2 } from '@tabler/icons-react'
+import { IconExternalLink, IconMoon, IconMenu2, IconSun } from '@tabler/icons-react'
 import { useTheme }   from '../contexts/ThemeContext'
 import { useSidebar } from '../contexts/SidebarContext'
 
@@ -13,6 +13,12 @@ const navLinks = [
 export default function NavBar() {
   const { theme, toggle }         = useTheme()
   const { toggle: toggleSidebar } = useSidebar()
+  const testPortalUrl = import.meta.env.VITE_TEST_PORTAL_URL ?? '/reports'
+  const developerPortalUrl = import.meta.env.VITE_DEV_PORTAL_URL ?? '/reports'
+
+  const openPortal = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <nav
@@ -59,6 +65,24 @@ export default function NavBar() {
 
       {/* Right controls */}
       <div className="flex items-center gap-2 ml-auto">
+        <button
+          data-testid="open-test-portal"
+          onClick={() => openPortal(testPortalUrl)}
+          className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-secondary hover:text-ink hover:bg-brand-tint transition-colors border-thin"
+        >
+          <span>Test portal</span>
+          <IconExternalLink size={14} stroke={1.6} />
+        </button>
+
+        <button
+          data-testid="open-dev-portal"
+          onClick={() => openPortal(developerPortalUrl)}
+          className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-secondary hover:text-ink hover:bg-brand-tint transition-colors border-thin"
+        >
+          <span>Developer portal</span>
+          <IconExternalLink size={14} stroke={1.6} />
+        </button>
+
         <button
           data-testid="theme-toggle"
           onClick={toggle}

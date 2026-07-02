@@ -21,12 +21,12 @@ export default function CategoryDonut() {
   let cumulative = 0
 
   return (
-    <div className="bg-card rounded-lg border-thin p-4 h-full flex flex-col">
+    <div data-testid="chart-category-donut" className="bg-card rounded-lg border-thin p-4 h-full flex flex-col">
       <p className="text-sm font-semibold text-ink mb-3">Spend breakdown</p>
 
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex flex-col xl:flex-row items-start xl:items-center gap-4 flex-1">
         {/* SVG donut */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 self-center">
           <svg viewBox="0 0 128 128" width={128} height={128}>
             {/* Background ring */}
             <circle
@@ -62,14 +62,17 @@ export default function CategoryDonut() {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-col gap-2 flex-1 min-w-0">
+        <div className="flex flex-col gap-2 flex-1 min-w-0 w-full">
           {SEGMENTS.map(seg => (
-            <div key={seg.label} className="flex items-center gap-2 min-w-0">
+            <div key={seg.label} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 min-w-0">
               <span
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: seg.color }}
               />
-              <span className="text-xs text-secondary flex-1 truncate">{seg.label}</span>
+              <div className="min-w-0">
+                <span className="text-xs text-ink leading-tight break-words">{seg.label}</span>
+                <p className="text-[11px] text-secondary mt-0.5">{seg.amount}</p>
+              </div>
               <span className="text-xs font-medium text-ink flex-shrink-0">{seg.pct}%</span>
             </div>
           ))}
