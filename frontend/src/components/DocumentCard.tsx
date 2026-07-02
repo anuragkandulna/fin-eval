@@ -1,13 +1,17 @@
 import { IconFileText, IconFileTypePdf, IconCheck, IconLoader } from '@tabler/icons-react'
 
 export interface Doc {
-  id:        string
-  name:      string
-  size:      string
-  type:      'TXT' | 'PDF'
-  chunks:    number
-  timestamp: string
-  status:    'indexed' | 'processing'
+  id:               string
+  name:             string
+  size:             string
+  sizeBytes:        number
+  type:             'TXT' | 'PDF'
+  chunks:           number
+  timestamp:        string
+  dateCreated:      number
+  dateModified:     number
+  status:           'indexed' | 'processing'
+  compressionRatio: number
 }
 
 interface Props {

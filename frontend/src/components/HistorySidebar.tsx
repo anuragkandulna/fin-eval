@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconPlus, IconChevronsLeft } from '@tabler/icons-react'
+import { useNavigate } from 'react-router-dom'
 import { useSidebar } from '../contexts/SidebarContext'
 
 interface Session {
@@ -21,6 +22,7 @@ const MOCK_SESSIONS: Session[] = [
 export default function HistorySidebar() {
   const [activeId, setActiveId] = useState('1')
   const { close } = useSidebar()
+  const navigate = useNavigate()
 
   return (
     <div className="w-56 h-full flex flex-col bg-card">
@@ -61,7 +63,11 @@ export default function HistorySidebar() {
         {MOCK_SESSIONS.map(session => (
           <button
             key={session.id}
-            onClick={() => setActiveId(session.id)}
+            onClick={() => {
+              setActiveId(session.id)
+              navigate('/')
+              close()
+            }}
             className={`w-full text-left px-3 py-2.5 rounded-md mx-1 transition-colors group ${
               activeId === session.id
                 ? 'bg-brand-tint'
