@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 
-export type ChatState = 'collapsed' | 'floating' | 'docked'
+export type ChatState = 'collapsed' | 'docked'
 
 export interface ChatMessage {
   id:   string

@@ -94,9 +94,6 @@ export default function NavBar() {
             : <IconMoon size={17} stroke={1.5} />}
         </button>
 
-        <div className="w-8 h-8 rounded-full bg-brand-tint text-brand text-xs font-semibold flex items-center justify-center select-none">
-          AK
-        </div>
       </div>
     </nav>
   )
