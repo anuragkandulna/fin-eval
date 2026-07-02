@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useChat }            from '../contexts/ChatContext'
 import BudgetHealthCards      from '../components/BudgetHealthCards'
 import SpendVsIncomeChart     from '../components/SpendVsIncomeChart'
 import CategoryDonut          from '../components/CategoryDonut'
@@ -8,10 +7,8 @@ import TopSpendingCategories  from '../components/TopSpendingCategories'
 import SpendingBreakdown      from '../components/SpendingBreakdown'
 import Recommendations        from '../components/Recommendations'
 import DisclaimerBar          from '../components/DisclaimerBar'
-import ChatPanel              from '../components/ChatPanel'
 import MobileBottomNav        from '../components/MobileBottomNav'
-
-type MobileView = 'budget' | 'chat'
+import MobileChatSheet        from '../components/MobileChatSheet'
 
 function DashboardContent() {
   return (
@@ -28,7 +25,7 @@ function DashboardContent() {
       {/* Row 2 — left: AI recommendations (sticky), right: charts */}
       <div className="flex gap-4 min-h-0 items-start">
 
-        {/* Left column — recommendations */}
+        {/* Left column — recommendations (desktop only) */}
         <div className="hidden lg:block w-72 flex-shrink-0 sticky top-0 self-start">
           <Recommendations />
         </div>
@@ -67,37 +64,33 @@ function DashboardContent() {
 }
 
 export default function Dashboard() {
-  const { setChatState } = useChat()
-  const [mobileView, setMobileView] = useState<MobileView>('budget')
+  const [chatOpen, setChatOpen] = useState(false)
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
 
       {/* Desktop */}
-      <div className="hidden md:flex flex-1 overflow-hidden min-h-0 flex-col">
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
+      <div className="hidden md:flex flex-1 flex-col overflow-hidden min-h-0">
+        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
           <DashboardContent />
           <DisclaimerBar />
         </main>
       </div>
 
-      {/* Mobile */}
+      {/* Mobile — dashboard always visible, sheet slides over it */}
       <div className="flex md:hidden flex-1 flex-col overflow-hidden min-h-0">
-        {mobileView === 'budget' ? (
-          <>
-            <DashboardContent />
-            <DisclaimerBar />
-          </>
-        ) : (
-          <ChatPanel />
-        )}
+        <DashboardContent />
+        <DisclaimerBar />
       </div>
 
       <MobileBottomNav
-        activeTab={mobileView === 'chat' ? 'chat' : 'dashboard'}
-        onDashboardClick={() => setMobileView('budget')}
-        onChatClick={() => { setMobileView('chat'); setChatState('collapsed') }}
+        activeTab={chatOpen ? 'chat' : 'dashboard'}
+        onDashboardClick={() => setChatOpen(false)}
+        onChatClick={() => setChatOpen(true)}
       />
+
+      {/* Mobile bottom sheet — slides up over dashboard content */}
+      <MobileChatSheet open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   )
 }
