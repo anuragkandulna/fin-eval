@@ -110,6 +110,12 @@ code, .font-mono {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
 
+/* ─── Floating chat animation ─────────────────────────────── */
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
 /* ─── Marquee disclaimer ──────────────────────────────────── */
 @keyframes marquee {
   from { transform: translateX(0); }

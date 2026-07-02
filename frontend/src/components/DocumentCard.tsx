@@ -1,5 +1,7 @@
 import { IconFileText, IconFileTypePdf, IconCheck, IconLoader } from '@tabler/icons-react'
 
+export type DocCategory = 'salary-slip' | 'bank-statement' | 'invoice' | 'tax-document' | 'insurance' | 'investment' | 'other'
+
 export interface Doc {
   id:               string
   name:             string
@@ -12,6 +14,8 @@ export interface Doc {
   dateModified:     number
   status:           'indexed' | 'processing'
   compressionRatio: number
+  category:         DocCategory
+  aiExtract?:       Record<string, string>
 }
 
 interface Props {
@@ -46,7 +50,7 @@ export default function DocumentCard({ doc, selected, onClick }: Props) {
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2 flex-wrap">
         {doc.status === 'indexed' ? (
           <>
             <IconCheck size={12} stroke={2.5} className="text-pass" />
@@ -58,6 +62,9 @@ export default function DocumentCard({ doc, selected, onClick }: Props) {
             <span className="text-xs text-brand font-medium">Processing</span>
           </>
         )}
+        <span className="text-[10px] text-secondary bg-snow rounded px-1.5 py-0.5 border-thin capitalize">
+          {doc.category.replace('-', ' ')}
+        </span>
       </div>
     </button>
   )

@@ -55,6 +55,29 @@ export default function DocumentDetailPanel({ doc, onClose, showClose = false }:
         </div>
       </div>
 
+      {/* AI extract */}
+      {doc.aiExtract && Object.keys(doc.aiExtract).length > 0 && (
+        <div className="px-4 py-3 separator-soft-b">
+          <p
+            className="text-secondary font-medium uppercase mb-2"
+            style={{ fontSize: 11, letterSpacing: '0.08em' }}
+          >
+            AI extract
+          </p>
+          <div
+            className="rounded-md px-3 py-2.5"
+            style={{ background: 'var(--color-brand-tint)', border: '0.5px solid var(--color-grid)' }}
+          >
+            {Object.entries(doc.aiExtract).map(([k, v]) => (
+              <div key={k} className="flex justify-between py-0.5">
+                <span className="text-xs text-secondary">{k}</span>
+                <span className="text-xs font-mono text-ink">{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Info */}
       <div className="px-4 py-3 separator-soft-b">
         <p

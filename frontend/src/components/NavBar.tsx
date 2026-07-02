@@ -4,8 +4,9 @@ import { useTheme }   from '../contexts/ThemeContext'
 import { useSidebar } from '../contexts/SidebarContext'
 
 const navLinks = [
-  { to: '/',          label: 'Dashboard', testid: 'nav-dashboard', end: true },
+  { to: '/',          label: 'Dashboard', testid: 'nav-dashboard', end: true  },
   { to: '/documents', label: 'Documents', testid: 'nav-documents', end: false },
+  { to: '/personal',  label: 'Personal',  testid: 'nav-personal',  end: false },
   { to: '/reports',   label: 'Reports',   testid: 'nav-reports',   end: false },
 ]
 
