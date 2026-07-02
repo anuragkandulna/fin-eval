@@ -1,8 +1,10 @@
-import { IconCheck, IconFileText, IconFileTypePdf } from '@tabler/icons-react'
+import { IconCheck, IconFileText, IconFileTypePdf, IconX } from '@tabler/icons-react'
 import type { Doc } from './DocumentCard'
 
 interface Props {
   doc: Doc
+  onClose?: () => void
+  showClose?: boolean
 }
 
 interface ProgressBarProps {
@@ -40,18 +42,27 @@ const EVAL = {
   retrieval:    { value: 91,   max: 100 },
 }
 
-export default function DocumentDetailPanel({ doc }: Props) {
+export default function DocumentDetailPanel({ doc, onClose, showClose = false }: Props) {
   const Icon = doc.type === 'PDF' ? IconFileTypePdf : IconFileText
 
   return (
-    <aside
-      className="w-72 flex-shrink-0 flex flex-col bg-card overflow-y-auto"
-      style={{ borderLeft: '0.5px solid var(--color-border)' }}
-    >
+    <aside className="h-full flex flex-col bg-card overflow-y-auto drawer-surface">
       {/* Document header */}
-      <div className="px-4 pt-4 pb-3" style={{ borderBottom: '0.5px solid var(--color-border)' }}>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs text-secondary">{doc.timestamp} · {doc.size}</span>
+      <div className="px-4 pt-4 pb-3 separator-soft-b">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs text-secondary truncate">{doc.timestamp} · {doc.size}</span>
+          </div>
+          {showClose && onClose ? (
+            <button
+              data-testid="close-document-detail"
+              onClick={onClose}
+              aria-label="Close document detail"
+              className="w-8 h-8 flex items-center justify-center rounded-md text-secondary hover:text-ink hover:bg-brand-tint transition-colors flex-shrink-0"
+            >
+              <IconX size={16} stroke={1.6} />
+            </button>
+          ) : null}
         </div>
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-md bg-brand-tint flex items-center justify-center">
@@ -70,7 +81,7 @@ export default function DocumentDetailPanel({ doc }: Props) {
       </div>
 
       {/* Document info */}
-      <div className="px-4 py-3" style={{ borderBottom: '0.5px solid var(--color-border)' }}>
+      <div className="px-4 py-3 separator-soft-b">
         <p
           className="text-secondary font-medium uppercase mb-2"
           style={{ fontSize: 11, letterSpacing: '0.08em' }}
@@ -92,7 +103,7 @@ export default function DocumentDetailPanel({ doc }: Props) {
       </div>
 
       {/* Eval coverage */}
-      <div className="px-4 py-3" style={{ borderBottom: '0.5px solid var(--color-border)' }}>
+      <div className="px-4 py-3 separator-soft-b">
         <p
           className="text-secondary font-medium uppercase mb-3"
           style={{ fontSize: 11, letterSpacing: '0.08em' }}

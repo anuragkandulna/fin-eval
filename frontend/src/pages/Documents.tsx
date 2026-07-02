@@ -5,10 +5,13 @@ import {
   IconUpload,
   IconArrowLeft,
   IconCloudUpload,
+  IconX,
 } from '@tabler/icons-react'
 import DocumentCard, { type Doc } from '../components/DocumentCard'
 import DocumentDetailPanel         from '../components/DocumentDetailPanel'
+import DisclaimerBar               from '../components/DisclaimerBar'
 import MobileBottomNav             from '../components/MobileBottomNav'
+import { useMediaQuery }           from '../hooks/useMediaQuery'
 
 // POST /documents/upload — see docs/api-endpoints.md
 async function stubUpload(_file: File): Promise<void> {
@@ -29,14 +32,16 @@ const PROCESSING_COUNT = MOCK_DOCS.filter(d => d.status === 'processing').length
 const TOTAL_CHUNKS     = MOCK_DOCS.reduce((s, d) => s + d.chunks, 0)
 
 export default function Documents() {
-  const [selectedId,    setSelectedId]   = useState<string>('1')
+  const [selectedId,    setSelectedId]   = useState<string | null>(null)
   const [query,         setQuery]        = useState('')
   const [isDragging,    setIsDragging]   = useState(false)
   const [uploading,     setUploading]    = useState(false)
-  const [mobileDetail,  setMobileDetail] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isPhone = useMediaQuery('(max-width: 767px)')
+  const useOverlayDrawer = useMediaQuery('(max-width: 1480px)')
 
-  const selectedDoc = MOCK_DOCS.find(d => d.id === selectedId) ?? MOCK_DOCS[0]
+  const selectedDoc = selectedId ? MOCK_DOCS.find(d => d.id === selectedId) ?? null : null
+  const detailOpen = !!selectedDoc
 
   const filtered = query.trim()
     ? MOCK_DOCS.filter(d => d.name.toLowerCase().includes(query.toLowerCase()))
@@ -58,21 +63,16 @@ export default function Documents() {
     handleFiles(e.dataTransfer.files)
   }
 
+  const closeDetail = () => setSelectedId(null)
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden min-h-0 relative">
 
         {/* Main content */}
-        <div
-          className={`flex-1 flex flex-col overflow-hidden ${
-            mobileDetail ? 'hidden md:flex' : 'flex'
-          }`}
-        >
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* Toolbar */}
-          <div
-            className="flex items-center gap-3 px-5 py-3 flex-shrink-0"
-            style={{ borderBottom: '0.5px solid var(--color-border)' }}
-          >
+          <div className="flex items-center gap-3 px-5 py-3 flex-shrink-0 separator-soft-b">
             <div
               className="flex items-center gap-2 flex-1 rounded-md px-3 py-1.5 bg-snow"
               style={{ border: '0.5px solid var(--color-border)' }}
@@ -114,10 +114,7 @@ export default function Documents() {
           </div>
 
           {/* Status bar */}
-          <div
-            className="flex items-center gap-4 px-5 py-2 text-xs flex-shrink-0"
-            style={{ borderBottom: '0.5px solid var(--color-border)' }}
-          >
+          <div className="flex items-center gap-4 px-5 py-2 text-xs flex-shrink-0 separator-soft-b">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-pass" />
               <span className="text-ink font-medium">Indexed {INDEXED_COUNT}</span>
@@ -143,7 +140,7 @@ export default function Documents() {
               Knowledge base documents
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
               {filtered.map(doc => (
                 <DocumentCard
                   key={doc.id}
@@ -151,7 +148,6 @@ export default function Documents() {
                   selected={doc.id === selectedId}
                   onClick={() => {
                     setSelectedId(doc.id)
-                    setMobileDetail(true)
                   }}
                 />
               ))}
@@ -185,25 +181,57 @@ export default function Documents() {
           </div>
         </div>
 
-        {/* Right: Document detail — mobile toggled, desktop always */}
-        <div
-          className={`flex-shrink-0 flex flex-col ${
-            mobileDetail ? 'flex flex-1 md:flex-none md:w-72' : 'hidden md:flex md:w-72'
-          }`}
-        >
-          {/* Mobile back button */}
-          <button
-            className="md:hidden flex items-center gap-2 px-4 py-3 text-sm text-brand"
-            style={{ borderBottom: '0.5px solid var(--color-border)' }}
-            onClick={() => setMobileDetail(false)}
-          >
-            <IconArrowLeft size={16} stroke={1.5} />
-            Back to documents
-          </button>
-          <DocumentDetailPanel doc={selectedDoc} />
-        </div>
+        {!useOverlayDrawer && detailOpen && selectedDoc ? (
+          <div className="w-[23rem] max-w-[32vw] flex-shrink-0 separator-soft-l">
+            <DocumentDetailPanel doc={selectedDoc} onClose={closeDetail} showClose />
+          </div>
+        ) : null}
+
+        {useOverlayDrawer && detailOpen && selectedDoc ? (
+          <>
+            <button
+              aria-label="Close document details"
+              className="absolute inset-0 z-20 bg-slate-950/35 backdrop-blur-[1px]"
+              onClick={closeDetail}
+            />
+            <div
+              className={`absolute inset-y-0 right-0 z-30 drawer-surface separator-soft-l transition-transform duration-300 ease-out ${
+                isPhone ? 'w-full max-w-full' : 'w-[24rem] max-w-[88vw]'
+              }`}
+            >
+              {isPhone ? (
+                <button
+                  className="flex items-center gap-2 px-4 py-3 text-sm text-brand separator-soft-b"
+                  onClick={closeDetail}
+                >
+                  <IconArrowLeft size={16} stroke={1.5} />
+                  Back to documents
+                </button>
+              ) : (
+                <div className="flex items-center justify-between px-4 py-3 separator-soft-b">
+                  <p
+                    className="text-secondary font-medium uppercase"
+                    style={{ fontSize: 11, letterSpacing: '0.08em' }}
+                  >
+                    Document details
+                  </p>
+                  <button
+                    data-testid="close-document-drawer"
+                    onClick={closeDetail}
+                    aria-label="Close document drawer"
+                    className="w-8 h-8 flex items-center justify-center rounded-md text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
+                  >
+                    <IconX size={16} stroke={1.6} />
+                  </button>
+                </div>
+              )}
+              <DocumentDetailPanel doc={selectedDoc} />
+            </div>
+          </>
+        ) : null}
       </div>
 
+      <DisclaimerBar />
       <MobileBottomNav activeTab="docs" />
     </div>
   )

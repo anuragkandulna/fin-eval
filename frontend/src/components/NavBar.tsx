@@ -15,15 +15,14 @@ export default function NavBar() {
 
   return (
     <nav
-      className="bg-card flex items-center px-4 h-14 gap-4 sticky top-0 z-40 flex-shrink-0"
-      style={{ borderBottom: '0.5px solid var(--color-border)' }}
+      className="bg-card flex items-center px-4 h-14 gap-4 sticky top-0 z-40 flex-shrink-0 separator-soft-b"
     >
-      {/* Sidebar toggle — desktop only, ChatGPT-style */}
+      {/* Sidebar toggle */}
       <button
         data-testid="sidebar-toggle"
         onClick={toggleSidebar}
         aria-label="Toggle history sidebar"
-        className="hidden md:flex w-9 h-9 items-center justify-center rounded-md text-secondary hover:text-ink hover:bg-brand-tint transition-colors flex-shrink-0"
+        className="flex w-9 h-9 items-center justify-center rounded-md text-secondary hover:text-ink hover:bg-brand-tint transition-colors flex-shrink-0"
       >
         <IconMenu2 size={18} stroke={1.5} />
       </button>
