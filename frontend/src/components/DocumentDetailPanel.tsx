@@ -87,6 +87,7 @@ export default function DocumentDetailPanel({ doc, onClose, showClose = false }:
           Details
         </p>
         {([
+          ['Category',     doc.category.replace(/-/g, ' ')],
           ['Collection',   'finance_docs'],
           ['Vector ratio', `${compressionPct}% compressed`],
         ] as [string, string][]).map(([k, v]) => (
