@@ -1,33 +1,99 @@
 import { NavLink } from 'react-router-dom'
+import { IconExternalLink, IconMoon, IconMenu2, IconSun } from '@tabler/icons-react'
+import { useTheme }   from '../contexts/ThemeContext'
+import { useSidebar } from '../contexts/SidebarContext'
 
-const links = [
-  { to: '/',          label: 'Chat',      testid: 'nav-chat' },
-  { to: '/analyse',   label: 'Analyse',   testid: 'nav-analyse' },
-  { to: '/documents', label: 'Documents', testid: 'nav-documents' },
+const navLinks = [
+  { to: '/',          label: 'Dashboard', testid: 'nav-dashboard', end: true  },
+  { to: '/documents', label: 'Documents', testid: 'nav-documents', end: false },
+  { to: '/personal',  label: 'Personal',  testid: 'nav-personal',  end: false },
+  { to: '/reports',   label: 'Reports',   testid: 'nav-reports',   end: false },
 ]
 
 export default function NavBar() {
+  const { theme, toggle }         = useTheme()
+  const { toggle: toggleSidebar } = useSidebar()
+  const testPortalUrl = import.meta.env.VITE_TEST_PORTAL_URL ?? '/reports'
+  const developerPortalUrl = import.meta.env.VITE_DEV_PORTAL_URL ?? '/reports'
+
+  const openPortal = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
   return (
-    <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-8">
-      <span className="font-semibold text-gray-900 text-lg tracking-tight">
-        FinEval
-      </span>
-      <div className="flex gap-6">
-        {links.map(({ to, label, testid }) => (
+    <nav
+      className="bg-card flex items-center px-4 h-14 gap-4 sticky top-0 z-40 flex-shrink-0 separator-soft-b"
+    >
+      {/* Sidebar toggle */}
+      <button
+        data-testid="sidebar-toggle"
+        onClick={toggleSidebar}
+        aria-label="Toggle history sidebar"
+        className="flex w-9 h-9 items-center justify-center rounded-md text-secondary hover:text-ink hover:bg-brand-tint transition-colors flex-shrink-0"
+      >
+        <IconMenu2 size={18} stroke={1.5} />
+      </button>
+
+      {/* Logo — sized to feel as heavy as the nav text */}
+      <img
+        src={theme === 'dark' ? '/fineval-dark.png' : '/fineval-light.png'}
+        alt="FinEval"
+        className="h-9 flex-shrink-0"
+        style={{ width: 'auto' }}
+      />
+
+      {/* Desktop nav links */}
+      <div className="hidden md:flex items-center gap-1 flex-1 ml-2">
+        {navLinks.map(({ to, label, testid, end }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={end}
             data-testid={testid}
             className={({ isActive }) =>
-              `text-sm font-medium transition-colors ${
-                isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'
+              `text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                isActive
+                  ? 'text-brand bg-brand-tint'
+                  : 'text-secondary hover:text-ink hover:bg-brand-tint'
               }`
             }
           >
             {label}
           </NavLink>
         ))}
+      </div>
+
+      {/* Right controls */}
+      <div className="flex items-center gap-2 ml-auto">
+        <button
+          data-testid="open-test-portal"
+          onClick={() => openPortal(testPortalUrl)}
+          className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-secondary hover:text-ink hover:bg-brand-tint transition-colors border-thin"
+        >
+          <span>Test portal</span>
+          <IconExternalLink size={14} stroke={1.6} />
+        </button>
+
+        <button
+          data-testid="open-dev-portal"
+          onClick={() => openPortal(developerPortalUrl)}
+          className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-secondary hover:text-ink hover:bg-brand-tint transition-colors border-thin"
+        >
+          <span>Developer portal</span>
+          <IconExternalLink size={14} stroke={1.6} />
+        </button>
+
+        <button
+          data-testid="theme-toggle"
+          onClick={toggle}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+          className="w-9 h-9 flex items-center justify-center rounded-md text-secondary hover:text-ink hover:bg-brand-tint transition-colors"
+        >
+          {theme === 'dark'
+            ? <IconSun  size={17} stroke={1.5} />
+            : <IconMoon size={17} stroke={1.5} />}
+        </button>
+
       </div>
     </nav>
   )
