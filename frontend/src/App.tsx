@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider }    from './contexts/ThemeContext'
 import { SidebarProvider }  from './contexts/SidebarContext'
 import { ChatProvider }     from './contexts/ChatContext'
 import { useChat }          from './contexts/ChatContext'
 import { useSidebar }       from './contexts/SidebarContext'
+import { useMediaQuery }    from './hooks/useMediaQuery'
 import { IconMessageCircle2 } from '@tabler/icons-react'
 import NavBar          from './components/NavBar'
 import HistorySidebar  from './components/HistorySidebar'
@@ -22,6 +23,16 @@ function AppLayout() {
   const { open, close }             = useSidebar()
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
   const docked = chatState === 'docked'
+  const narrowLayout = useMediaQuery('(max-width: 1439px)')
+
+  // 2-panel max: sidebar + chat panel can't both be open on narrower desktops
+  useEffect(() => {
+    if (narrowLayout && docked && open) close()
+  }, [docked, narrowLayout]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (narrowLayout && open && docked) setChatState('collapsed')
+  }, [open, narrowLayout]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col h-[100dvh] min-h-screen overflow-hidden bg-snow text-ink">
@@ -50,7 +61,7 @@ function AppLayout() {
 
         {/* Docked chat panel — desktop only */}
         {docked && (
-          <div className="hidden md:flex w-[400px] flex-shrink-0 flex-col pane-divider">
+          <div className="hidden md:flex w-[360px] flex-shrink-0 flex-col pane-divider">
             <ChatPanel onClose={() => setChatState('collapsed')} />
           </div>
         )}

@@ -99,41 +99,39 @@ export default function DocumentDetailPanel({ doc, onClose, showClose = false }:
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-3 flex flex-col gap-2">
+      <div className="px-4 py-4 separator-soft-t">
         <p
-          className="text-secondary font-medium uppercase mb-1"
+          className="text-secondary font-medium uppercase mb-3"
           style={{ fontSize: 11, letterSpacing: '0.08em' }}
         >
           Actions
         </p>
-        <button
-          data-testid="reindex-doc"
-          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-ink rounded-md hover:bg-brand-tint transition-colors"
-          style={{ border: '0.5px solid var(--color-border)' }}
-        >
-          <IconRefresh size={14} stroke={1.5} /> Re-index
-        </button>
-        <button
-          data-testid="download-doc"
-          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-ink rounded-md hover:bg-brand-tint transition-colors"
-          style={{ border: '0.5px solid var(--color-border)' }}
-        >
-          <IconDownload size={14} stroke={1.5} /> Download
-        </button>
-        <button
-          data-testid="archive-doc"
-          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-ink rounded-md hover:bg-brand-tint transition-colors"
-          style={{ border: '0.5px solid var(--color-border)' }}
-        >
-          <IconArchive size={14} stroke={1.5} /> Archive
-        </button>
-        <button
-          data-testid="remove-doc"
-          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-fail rounded-md hover:bg-brand-tint transition-colors"
-          style={{ border: '0.5px solid var(--color-border)' }}
-        >
-          <IconTrash size={14} stroke={1.5} /> Delete
-        </button>
+        <div className="flex flex-col gap-2">
+          {[
+            { testid: 'reindex-doc',  Icon: IconRefresh,  label: 'Re-index' },
+            { testid: 'download-doc', Icon: IconDownload, label: 'Download' },
+            { testid: 'archive-doc',  Icon: IconArchive,  label: 'Archive'  },
+          ].map(({ testid, Icon, label }) => (
+            <button
+              key={testid}
+              data-testid={testid}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-ink rounded-lg hover:bg-brand-tint transition-colors"
+              style={{ border: '1px solid var(--color-border)' }}
+            >
+              <Icon size={14} stroke={1.5} className="text-secondary flex-shrink-0" />
+              {label}
+            </button>
+          ))}
+
+          <button
+            data-testid="remove-doc"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-fail rounded-lg hover:bg-brand-tint transition-colors"
+            style={{ border: '1px solid color-mix(in srgb, var(--color-fail) 30%, transparent)' }}
+          >
+            <IconTrash size={14} stroke={1.5} className="flex-shrink-0" />
+            Delete
+          </button>
+        </div>
       </div>
     </aside>
   )

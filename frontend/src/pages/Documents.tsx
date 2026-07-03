@@ -208,7 +208,7 @@ export default function Documents() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-brand text-white text-sm font-medium rounded-md hover:opacity-80 transition-opacity flex-shrink-0"
             >
               <IconUpload size={14} stroke={2} />
-              <span className="hidden sm:inline">Upload document</span>
+              <span className="hidden sm:inline">Upload</span>
               <span className="sm:hidden">Upload</span>
             </button>
           </div>
