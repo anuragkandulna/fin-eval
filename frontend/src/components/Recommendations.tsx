@@ -10,7 +10,7 @@ interface Rec {
 const RECS: Rec[] = [
   { color: 'var(--color-warn)',  title: 'Savings gap',     detail: 'Increase SIP by ₹2,000/month to hit 20% savings rate.',   impact: 'high'   },
   { color: 'var(--color-pass)',  title: 'Debt on track',   detail: 'Credit card clears in 8 months at current EMI pace.',       impact: 'medium' },
-  { color: 'var(--color-brand)', title: 'Tax opportunity', detail: '₹34k 80C headroom remaining — ELSS before 31 March.',      impact: 'high'   },
+  { color: 'var(--color-brand)', title: 'Advance tax',     detail: 'Sept instalment due — set aside ≈ ₹22,900 by Sep 15.',   impact: 'high'   },
 ]
 
 const ALERTS = [
