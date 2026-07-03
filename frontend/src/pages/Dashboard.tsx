@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import BudgetHealthCards      from '../components/BudgetHealthCards'
 import SpendVsIncomeChart     from '../components/SpendVsIncomeChart'
 import CategoryDonut          from '../components/CategoryDonut'
@@ -6,10 +5,6 @@ import SpendingTrendChart     from '../components/SpendingTrendChart'
 import TopSpendingCategories  from '../components/TopSpendingCategories'
 import SpendingBreakdown      from '../components/SpendingBreakdown'
 import Recommendations        from '../components/Recommendations'
-import DisclaimerBar          from '../components/DisclaimerBar'
-import MobileBottomNav        from '../components/MobileBottomNav'
-import MobileChatSheet        from '../components/MobileChatSheet'
-
 function DashboardContent() {
   return (
     <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5 min-h-0">
@@ -64,33 +59,9 @@ function DashboardContent() {
 }
 
 export default function Dashboard() {
-  const [chatOpen, setChatOpen] = useState(false)
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-
-      {/* Desktop */}
-      <div className="hidden md:flex flex-1 flex-col overflow-hidden min-h-0">
-        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
-          <DashboardContent />
-          <DisclaimerBar />
-        </main>
-      </div>
-
-      {/* Mobile — dashboard always visible, sheet slides over it */}
-      <div className="flex md:hidden flex-1 flex-col overflow-hidden min-h-0">
-        <DashboardContent />
-        <DisclaimerBar />
-      </div>
-
-      <MobileBottomNav
-        activeTab={chatOpen ? 'chat' : 'dashboard'}
-        onDashboardClick={() => setChatOpen(false)}
-        onChatClick={() => setChatOpen(true)}
-      />
-
-      {/* Mobile bottom sheet — slides up over dashboard content */}
-      <MobileChatSheet open={chatOpen} onClose={() => setChatOpen(false)} />
+      <DashboardContent />
     </div>
   )
 }

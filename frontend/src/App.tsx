@@ -1,21 +1,26 @@
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider }    from './contexts/ThemeContext'
 import { SidebarProvider }  from './contexts/SidebarContext'
 import { ChatProvider }     from './contexts/ChatContext'
 import { useChat }          from './contexts/ChatContext'
 import { useSidebar }       from './contexts/SidebarContext'
-import NavBar         from './components/NavBar'
-import HistorySidebar from './components/HistorySidebar'
-import FloatingChat   from './components/FloatingChat'
-import ChatPanel      from './components/ChatPanel'
-import Dashboard      from './pages/Dashboard'
-import Documents      from './pages/Documents'
-import PersonalData   from './pages/PersonalData'
-import Reports        from './pages/Reports'
+import { IconMessageCircle2 } from '@tabler/icons-react'
+import NavBar          from './components/NavBar'
+import HistorySidebar  from './components/HistorySidebar'
+import FloatingChat    from './components/FloatingChat'
+import ChatPanel       from './components/ChatPanel'
+import MobileChatSheet from './components/MobileChatSheet'
+import DisclaimerBar   from './components/DisclaimerBar'
+import Dashboard        from './pages/Dashboard'
+import Documents        from './pages/Documents'
+import PersonalData     from './pages/PersonalData'
+import Reports          from './pages/Reports'
 
 function AppLayout() {
   const { chatState, setChatState } = useChat()
   const { open, close }             = useSidebar()
+  const [mobileChatOpen, setMobileChatOpen] = useState(false)
   const docked = chatState === 'docked'
 
   return (
@@ -43,13 +48,29 @@ function AppLayout() {
           </Routes>
         </div>
 
-        {/* Docked chat panel */}
+        {/* Docked chat panel — desktop only */}
         {docked && (
           <div className="hidden md:flex w-[400px] flex-shrink-0 flex-col pane-divider">
             <ChatPanel onClose={() => setChatState('collapsed')} />
           </div>
         )}
       </div>
+
+      <DisclaimerBar />
+
+      {/* Mobile floating chat button — WhatsApp style, replaces bottom nav */}
+      <button
+        data-testid="mobile-chat-fab"
+        onClick={() => setMobileChatOpen(true)}
+        aria-label="Open finance advisor"
+        className="md:hidden fixed bottom-6 right-6 z-[90] w-14 h-14 flex items-center justify-center rounded-full shadow-lg"
+        style={{
+          background: 'linear-gradient(160deg, var(--color-brand), color-mix(in srgb, var(--color-brand) 72%, black))',
+          border: '1px solid color-mix(in srgb, var(--color-brand) 65%, white)',
+        }}
+      >
+        <IconMessageCircle2 size={24} stroke={1.9} className="text-white" />
+      </button>
 
       {/* Mobile sidebar overlay */}
       {open && (
@@ -65,6 +86,10 @@ function AppLayout() {
         </div>
       )}
 
+      {/* Mobile chat sheet — overlays all pages */}
+      <MobileChatSheet open={mobileChatOpen} onClose={() => setMobileChatOpen(false)} />
+
+      {/* Desktop floating chat icon */}
       <FloatingChat />
     </div>
   )

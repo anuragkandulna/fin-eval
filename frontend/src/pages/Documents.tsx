@@ -11,8 +11,6 @@ import {
 } from '@tabler/icons-react'
 import DocumentCard, { type Doc, type DocCategory } from '../components/DocumentCard'
 import DocumentDetailPanel         from '../components/DocumentDetailPanel'
-import DisclaimerBar               from '../components/DisclaimerBar'
-import MobileBottomNav             from '../components/MobileBottomNav'
 import UploadModal                 from '../components/UploadModal'
 import { useMediaQuery }           from '../hooks/useMediaQuery'
 
@@ -339,9 +337,6 @@ export default function Documents() {
           </>
         ) : null}
       </div>
-
-      <DisclaimerBar />
-      <MobileBottomNav activeTab="docs" />
 
       {uploadOpen && <UploadModal onClose={() => setUploadOpen(false)} />}
     </div>

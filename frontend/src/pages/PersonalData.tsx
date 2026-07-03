@@ -12,8 +12,6 @@ import {
   IconChevronDown,
   IconFile,
 } from '@tabler/icons-react'
-import DisclaimerBar   from '../components/DisclaimerBar'
-import MobileBottomNav from '../components/MobileBottomNav'
 
 function Section({ title, icon: Icon, children }: { title: string; icon: ElementType; children: ReactNode }) {
   return (
@@ -105,7 +103,7 @@ export default function PersonalData() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto">
-      <div className="min-h-full px-5 py-5 pb-24 md:pb-8 flex flex-col gap-5">
+      <div className="min-h-full px-5 py-5 flex flex-col gap-5">
 
         {/* Page title */}
         <div className="flex items-center justify-between">
@@ -252,8 +250,6 @@ export default function PersonalData() {
 
       </div>
 
-      <DisclaimerBar />
-      <MobileBottomNav activeTab="personal" />
     </div>
   )
 }
