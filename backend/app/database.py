@@ -1,6 +1,6 @@
 import ssl
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from sqlmodel import SQLModel
 from app.config import settings
 
 
@@ -30,10 +30,6 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-class Base(DeclarativeBase):
-    pass
-
-
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
@@ -41,4 +37,4 @@ async def get_db():
 
 async def init_db():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(SQLModel.metadata.create_all)
