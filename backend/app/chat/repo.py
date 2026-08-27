@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel import select
 from app.chat.models import ChatSession, ChatMessage
 
 

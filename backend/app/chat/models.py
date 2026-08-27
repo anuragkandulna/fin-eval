@@ -1,42 +1,35 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from typing import Optional
+from sqlmodel import SQLModel, Field, Relationship
 
 
-class ChatSession(Base):
+class ChatSession(SQLModel, table=True):
     __tablename__ = "chat_sessions"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    session_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    clerk_user_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-    )
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: str = Field(..., max_length=255, unique=True, index=True)
+    clerk_user_id: Optional[str] = Field(default=None, max_length=255)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    messages: Mapped[list["ChatMessage"]] = relationship(
-        back_populates="session", order_by="ChatMessage.created_at"
+    messages: list["ChatMessage"] = Relationship(
+        back_populates="session",
+        sa_relationship_kwargs={"lazy": "selectin"},
     )
 
 
-class ChatMessage(Base):
+class ChatMessage(SQLModel, table=True):
     __tablename__ = "chat_messages"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    chat_session_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("chat_sessions.id"), nullable=False
-    )
-    role: Mapped[str] = mapped_column(String(16), nullable=False)  # "user" | "assistant"
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    trace_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
-    )
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    chat_session_id: uuid.UUID = Field(foreign_key="chat_sessions.id")
+    role: str = Field(..., max_length=16)  # "user" | "assistant"
+    content: str
+    trace_url: Optional[str] = Field(default=None, max_length=512)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    session: Mapped["ChatSession"] = relationship(back_populates="messages")
+    session: Optional[ChatSession] = Relationship(
+        back_populates="messages",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
