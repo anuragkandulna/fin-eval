@@ -1,13 +1,11 @@
-version: '3.8'
-
 services:
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
+      timeout: 5s
       retries: 5
 
   backend:
@@ -17,28 +15,34 @@ services:
     ports:
       - "8000:8000"
     env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
     depends_on:
       redis:
         condition: service_healthy
-    volumes:
-      - ./evals/reports:/app/reports
+      mlflow:
+        condition: service_started
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: production
     ports:
       - "3000:80"
     depends_on:
       - backend
     restart: unless-stopped
 
-  test-dashboard:
-    build: ./test-dashboard
+  mlflow:
+    build:
+      context: ./deploy/mlflow
     ports:
-      - "3001:80"
-    environment:
-      - VITE_GITHUB_REPO=${GITHUB_REPO}
-      - VITE_GITHUB_TOKEN=${GITHUB_TOKEN}
-      - VITE_BACKEND_URL=http://backend:8000
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
     restart: unless-stopped
 
+volumes:
+  mlflow_data:
