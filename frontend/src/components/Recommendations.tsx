@@ -27,8 +27,7 @@ const IMPACT_BADGE: Record<Rec['impact'], string> = {
 export default function Recommendations() {
   return (
     <div className="bg-card rounded-lg border-thin p-4 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-ink">Recommendations</p>
+      <div className="flex items-center justify-end">
         <span className="text-[10px] font-mono text-secondary uppercase tracking-wide">AI · prompt v3</span>
       </div>
 
