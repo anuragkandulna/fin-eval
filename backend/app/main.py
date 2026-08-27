@@ -41,9 +41,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_allowed_origins = [
+    f"https://{settings.domain}",
+    f"https://app.{settings.domain}",
+]
+if settings.environment != "production":
+    _allowed_origins.append("http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
