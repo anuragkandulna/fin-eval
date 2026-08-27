@@ -14,7 +14,7 @@ from app.analyse.router import router as analyse_router
 from app.documents.router import router as documents_router
 from app.health.router import router as health_router
 
-# Import models so Base.metadata.create_all picks them up
+# Import models so SQLModel.metadata.create_all picks them up
 import app.chat.models  # noqa: F401
 
 import structlog
