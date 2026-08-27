@@ -17,7 +17,7 @@ Frontend:    React 18 + TypeScript + Vite + TailwindCSS + Axios + Tanstack Query
 Backend:     FastAPI 0.111 + Python 3.12 + Pydantic v2 + SQLAlchemy async
 Agent:       LangGraph 0.2 + LangChain 0.3 + OpenAI GPT-4o-mini
 RAG:         Qdrant Cloud + LangChain text splitter + OpenAI text-embedding-ada-002
-Tracing:     Langfuse (target: trace.domain.com — NOT YET INTEGRATED)
+Tracing:     MLflow Tracing (per-request spans) + MLflow Tracking (aggregate CI metrics) — NOT YET INTEGRATED
 Database:    Neon PostgreSQL (asyncpg) + Redis (declared, NOT YET USED)
 Eval:        DeepEval + Playwright + aiohttp load + Playwright Lighthouse
 CI/CD:       GitHub Actions → GHCR → Hostinger VPS (SSH deploy)
@@ -310,7 +310,7 @@ Request:  multipart/form-data, field: "file" (.pdf, .txt, .md, .docx, .csv)
 Response: { "doc_id": "string", "filename": "string", "chunks": int, "status": "processed" }
 ```
 
-Note: `client.ts` also expects `trace_url: string | null` on ChatResponse and AnalyseResponse — these fields are not yet returned by the backend (Langfuse not integrated).
+Note: `client.ts` also expects `trace_url: string | null` on ChatResponse and AnalyseResponse — these fields are not yet returned by the backend (MLflow Tracing not yet wired; returns `null` until Sprint 1.3).
 
 ### 3.6 Deployment Architecture
 
@@ -455,12 +455,13 @@ File: `backend/app/rag/ingest.py`
 - User-initiated document uploads must wait for Qdrant to confirm the write
 - Audit `langchain-qdrant`'s `add_documents` signature; if `wait` is not exposed, use the underlying `qdrant_client` directly with `wait=True`
 
-#### Task 1.3: Integrate Langfuse tracing
-- Install `langfuse` in `pyproject.toml`
-- In `backend/app/config.py`, add `langfuse_public_key: str = ""` and `langfuse_secret_key: str = ""`
-- In `backend/app/agent/nodes.py`, initialize a `LangfuseCallbackHandler` using `trace_id` from state and pass it to each `llm.ainvoke()` call
-- In `chat.py` and `analyse.py` routers, construct the Langfuse trace URL and return it as `trace_url` in the response (matching the `client.ts` interface which already expects `trace_url: string | null`)
-- Env vars: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` (default `https://cloud.langfuse.com`)
+#### Task 1.3: Integrate MLflow Tracing
+- Add `mlflow>=2.14` to `pyproject.toml`
+- In `backend/app/config.py`, add `mlflow_tracking_uri: str = "http://localhost:5000"` and `mlflow_experiment: str = "fineval-evals"`
+- In `main.py` lifespan, call `mlflow.langchain.autolog()` after `init_db()`
+- In `backend/app/agent/nodes.py`, wrap each `llm.ainvoke()` call with `with mlflow.start_span(name="<node_name>") as span` and populate `trace_url` in state from the active span's trace ID
+- In `chat.py` and `analyse.py` routers, return `trace_url` in the response (the `client.ts` interface already expects `trace_url: string | null`)
+- Env vars: `MLFLOW_TRACKING_URI`, `MLFLOW_EXPERIMENT`
 
 #### Task 1.4: Add Redis semantic caching
 - `redis` package is already in `pyproject.toml` (`redis==5.0.4`)
@@ -674,12 +675,7 @@ QDRANT_URL=https://xxx.us-east4.gcp.cloud.qdrant.io
 QDRANT_API_KEY=...
 QDRANT_COLLECTION=finance_docs   # default, overridable
 
-# Langfuse (Sprint 1.3)
-LANGFUSE_PUBLIC_KEY=pk-lf-...
-LANGFUSE_SECRET_KEY=sk-lf-...
-LANGFUSE_HOST=https://cloud.langfuse.com
-
-# MLflow (Sprint 1.6 / 3.1)
+# MLflow (Sprint 1.3 / 3.1)
 MLFLOW_TRACKING_URI=http://localhost:5000   # or remote
 
 # App settings

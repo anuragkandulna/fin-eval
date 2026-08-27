@@ -1,23 +1,10 @@
 from pydantic import BaseModel
 
 
-class ChatRequest(BaseModel):
-    message: str
-    session_id: str = "default"
-    context_docs: list[str] = []
-
-
-class ChatResponse(BaseModel):
-    response: str
-    sources: list[str] = []
-    tool_calls_made: list[str] = []
-    trace_id: str
-
-
 class DebtItem(BaseModel):
     name: str
     balance: float
-    rate: float   # annual rate as decimal, e.g. 0.36 for 36%
+    rate: float  # annual rate as decimal, e.g. 0.36 for 36%
 
 
 class AnalyseRequest(BaseModel):
@@ -41,11 +28,4 @@ class AnalyseResponse(BaseModel):
     surplus_deficit: float | None = None
     projected_value: float | None = None
     tool_calls_made: list[str] = []
-    trace_id: str
-
-
-class DocumentResponse(BaseModel):
-    doc_id: str
-    filename: str
-    chunks: int
-    status: str
+    trace_url: str | None = None  # null until MLflow Tracing is wired (Sprint 1.3)

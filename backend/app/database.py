@@ -1,6 +1,6 @@
 import ssl
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from sqlmodel import SQLModel
 from app.config import settings
 
 
@@ -13,7 +13,6 @@ def _build_async_url(url: str) -> str:
     for prefix in ("postgresql://", "postgres://"):
         if url.startswith(prefix):
             base = url.replace(prefix, "postgresql+asyncpg://", 1)
-            # Drop any query string; SSL handled by connect_args below
             return base.split("?")[0]
     raise ValueError(f"Unsupported DATABASE_URL scheme: {url!r}")
 
@@ -31,10 +30,6 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-class Base(DeclarativeBase):
-    pass
-
-
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
@@ -42,4 +37,4 @@ async def get_db():
 
 async def init_db():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(SQLModel.metadata.create_all)

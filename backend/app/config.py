@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     qdrant_api_key: str = ""
     qdrant_collection: str = "finance_docs"
 
+    mlflow_tracking_uri: str = "http://localhost:5000"
+    mlflow_experiment: str = "fineval-evals"
+
     class Config:
         env_file = (".env", "../.env")  # works from both backend/ and project root
         extra = "ignore"
