@@ -1,3 +1,4 @@
+import mlflow
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
@@ -109,7 +110,8 @@ async def response_node(state: FinanceAgentState) -> dict:
             HumanMessage(content=state["user_query"]),
         ]
 
-    response = await llm.ainvoke(messages)
+    with mlflow.start_span(name="response_node"):
+        response = await llm.ainvoke(messages)
     return {
         "final_response":  response.content,
         "tool_calls_made": state.get("tool_calls_made", []) + ["llm_response_v3"],
@@ -122,7 +124,8 @@ async def guardrail_node(state: FinanceAgentState) -> dict:
         SystemMessage(content=GUARDRAIL_SYSTEM),
         HumanMessage(content=state["final_response"]),
     ]
-    result = await llm.ainvoke(messages)
+    with mlflow.start_span(name="guardrail_node"):
+        result = await llm.ainvoke(messages)
     return {
         "final_response":  result.content,
         "tool_calls_made": state.get("tool_calls_made", []) + ["guardrail"],
