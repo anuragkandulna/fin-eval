@@ -62,7 +62,7 @@ async def ingest_file(file_path: str, doc_id: str) -> int:
         chunk.metadata["doc_id"] = doc_id
         chunk.metadata["source"] = os.path.basename(file_path)
 
-    get_vectorstore().add_documents(chunks)
+    get_vectorstore().add_documents(chunks, wait=True)
     logger.info("ingested", chunks=len(chunks), doc_id=doc_id)
     return len(chunks)
 
