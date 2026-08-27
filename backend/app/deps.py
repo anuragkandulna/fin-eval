@@ -1,12 +1,5 @@
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import AsyncSessionLocal
+from app.database import get_db as get_db  # noqa: F401 — re-export for dependency injection
 from app.agent.graph import finance_agent as _finance_agent
-
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
-        yield session
 
 
 def get_agent():
