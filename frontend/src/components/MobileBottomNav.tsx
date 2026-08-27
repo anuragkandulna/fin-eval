@@ -1,58 +1,29 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { IconFileText, IconLayoutDashboard, IconMessage, IconUserCircle } from '@tabler/icons-react'
 
-type Tab = 'dashboard' | 'chat' | 'docs' | 'personal'
-
 interface Props {
-  activeTab: Tab
-  onDashboardClick?: () => void
-  onChatClick?: () => void
+  onChatClick: () => void
 }
 
-export default function MobileBottomNav({ activeTab, onDashboardClick, onChatClick }: Props) {
-  const navigate  = useNavigate()
-  const location  = useLocation()
+export default function MobileBottomNav({ onChatClick }: Props) {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const tabs = [
-    {
-      id:      'dashboard' as Tab,
-      label:   'Dashboard',
-      Icon:    IconLayoutDashboard,
-      onClick: () => {
-        if (onDashboardClick) onDashboardClick()
-        else if (location.pathname !== '/') navigate('/')
-      },
-    },
-    {
-      id:      'chat' as Tab,
-      label:   'Chat',
-      Icon:    IconMessage,
-      onClick: () => {
-        if (onChatClick) onChatClick()
-        else navigate('/')
-      },
-    },
-    {
-      id:      'docs' as Tab,
-      label:   'Docs',
-      Icon:    IconFileText,
-      onClick: () => navigate('/documents'),
-    },
-    {
-      id:      'personal' as Tab,
-      label:   'Personal',
-      Icon:    IconUserCircle,
-      onClick: () => navigate('/personal'),
-    },
+    { id: 'dashboard', label: 'Dashboard', Icon: IconLayoutDashboard, onClick: () => navigate('/'),           path: '/'         },
+    { id: 'chat',      label: 'Chat',      Icon: IconMessage,          onClick: onChatClick,                   path: null        },
+    { id: 'docs',      label: 'Docs',      Icon: IconFileText,         onClick: () => navigate('/documents'), path: '/documents' },
+    { id: 'personal',  label: 'Personal',  Icon: IconUserCircle,       onClick: () => navigate('/personal'),  path: '/personal'  },
   ]
 
   return (
     <nav
+      data-testid="mobile-bottom-nav"
       className="md:hidden flex items-center bg-card flex-shrink-0"
       style={{ borderTop: '0.5px solid var(--color-border)' }}
     >
-      {tabs.map(({ id, label, Icon, onClick }) => {
-        const isActive = activeTab === id
+      {tabs.map(({ id, label, Icon, onClick, path }) => {
+        const isActive = path !== null && pathname === path
         return (
           <button
             key={id}

@@ -36,7 +36,7 @@ const TrendIcon = ({ trend }: { trend: Trend }) => {
 
 export default function BudgetHealthCards() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
       {METRICS.map(m => (
         <div
           key={m.label}

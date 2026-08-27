@@ -1,5 +1,4 @@
 import { IconChartBar } from '@tabler/icons-react'
-import MobileBottomNav from '../components/MobileBottomNav'
 
 export default function Reports() {
   return (
@@ -10,15 +9,12 @@ export default function Reports() {
         </div>
         <div>
           <p className="text-lg font-semibold text-ink">No eval runs yet</p>
-          <p className="text-sm text-secondary mt-1">
-            Push to main to trigger the pipeline.
-          </p>
+          <p className="text-sm text-secondary mt-1">Push to main to trigger the pipeline.</p>
         </div>
         <p className="text-xs text-secondary font-mono max-w-xs">
           MLflow experiment: fineval-production · ci_gate.py thresholds: faithfulness ≥ 0.70, hallucination ≤ 0.20
         </p>
       </div>
-      <MobileBottomNav activeTab="dashboard" />
     </div>
   )
 }
