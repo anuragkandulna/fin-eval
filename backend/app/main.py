@@ -1,15 +1,22 @@
 import os
-from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+
+import mlflow
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.models.database import init_db
+from app.database import init_db
 from app.rag.ingest import ingest_directory, get_vectorstore
-from app.routers import chat, analyse, documents
+
+from app.chat.router import router as chat_router
+from app.analyse.router import router as analyse_router
+from app.documents.router import router as documents_router
+from app.health.router import router as health_router
+
+# Import models so Base.metadata.create_all picks them up
+import app.chat.models  # noqa: F401
+
 import structlog
 
 logger = structlog.get_logger()
@@ -19,6 +26,10 @@ logger = structlog.get_logger()
 async def lifespan(app: FastAPI):
     logger.info("starting_fineval_api")
     await init_db()
+
+    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+    mlflow.set_experiment(settings.mlflow_experiment)
+    mlflow.langchain.autolog()
 
     docs_dir = "/app/data/finance_docs"
     if os.path.exists(docs_dir):
@@ -56,32 +67,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat.router)
-app.include_router(analyse.router)
-app.include_router(documents.router)
-
-frontend_dist = Path("/app/frontend_dist")
-if not frontend_dist.exists():
-    frontend_dist = Path(__file__).resolve().parents[2] / "frontend_dist"
-
-assets_dir = frontend_dist / "assets"
-index_file = frontend_dist / "index.html"
-if assets_dir.exists():
-    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok", "service": "fineval-api"}
-
-
-@app.get("/{full_path:path}")
-async def serve_frontend(full_path: str):
-    if not index_file.exists():
-        raise HTTPException(status_code=404, detail="Frontend build not found")
-
-    requested = frontend_dist / full_path
-    if full_path and requested.exists() and requested.is_file():
-        return FileResponse(requested)
-
-    return FileResponse(index_file)
+app.include_router(chat_router)
+app.include_router(analyse_router)
+app.include_router(documents_router)
+app.include_router(health_router)
