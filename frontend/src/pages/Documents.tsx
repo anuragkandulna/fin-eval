@@ -57,7 +57,7 @@ function apiToDoc(item: DocumentListItem): Doc {
     name:             item.filename,
     size:             '—',
     sizeBytes:        0,
-    type:             ext,
+    type:             ext as Doc['type'],
     chunks:           item.chunk_count,
     timestamp:        relativeTime(item.created_at),
     dateCreated:      ts,
