@@ -12,3 +12,18 @@ class ChatResponse(BaseModel):
     sources: list[str] = []
     tool_calls_made: list[str] = []
     trace_url: str | None = None  # null until MLflow Tracing is wired (Sprint 1.3)
+
+
+class ChatSessionSummary(BaseModel):
+    session_id: str
+    title: str    # first user message truncated to 60 chars; "New conversation" if none
+    preview: str  # last assistant message truncated to 80 chars
+    created_at: str
+    updated_at: str
+
+
+class ChatMessageOut(BaseModel):
+    role: str
+    content: str
+    trace_url: str | None
+    created_at: str

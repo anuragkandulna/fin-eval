@@ -187,4 +187,27 @@ export interface PersonalData {
 }
 
 export const getPersonalData = () =>
-  api.get<PersonalData>('/personal').then(r => r.data)
+  api.get<PersonalData>('/personal/data').then(r => r.data)
+
+// ── Chat history ───────────────────────────────────────────────────────────
+
+export interface ChatSessionSummary {
+  session_id: string
+  title: string
+  preview: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ChatMessageOut {
+  role: 'user' | 'assistant'
+  content: string
+  trace_url: string | null
+  created_at: string
+}
+
+export const getChatSessions = () =>
+  api.get<ChatSessionSummary[]>('/chat/sessions').then(r => r.data)
+
+export const getChatMessages = (sessionId: string) =>
+  api.get<ChatMessageOut[]>(`/chat/sessions/${sessionId}/messages`).then(r => r.data)

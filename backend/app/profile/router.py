@@ -16,7 +16,7 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
     return data
 
 
-@router.get("/personal", response_model=PersonalDataResponse, status_code=200)
+@router.get("/personal/data", response_model=PersonalDataResponse, status_code=200)
 async def get_personal(db: AsyncSession = Depends(get_db)):
     data = await repo.get_personal(db)
     if data is None:

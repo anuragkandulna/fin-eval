@@ -3,7 +3,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
+from qdrant_client.http.models import Distance, VectorParams, PayloadSchemaType
 from app.config import settings
 import os
 import structlog
@@ -26,6 +26,11 @@ def get_vectorstore() -> QdrantVectorStore:
         client.create_collection(
             collection_name=settings.qdrant_collection,
             vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
+        )
+        client.create_payload_index(
+            collection_name=settings.qdrant_collection,
+            field_name="metadata.doc_id",
+            field_schema=PayloadSchemaType.KEYWORD,
         )
         logger.info("qdrant_collection_created", name=settings.qdrant_collection)
 

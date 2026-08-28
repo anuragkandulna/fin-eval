@@ -90,7 +90,7 @@ export default function Documents() {
     queryFn:  getDocuments,
     staleTime: 30_000,
   })
-  const DOCS: Doc[] = apiDocs.map(apiToDoc)
+  const DOCS: Doc[] = useMemo(() => apiDocs.map(apiToDoc), [apiDocs])
 
   const INDEXED_COUNT    = DOCS.filter(d => d.status === 'indexed').length
   const PROCESSING_COUNT = DOCS.filter(d => d.status === 'processing').length
@@ -252,8 +252,8 @@ export default function Documents() {
           <div className="flex items-center gap-1 px-5 py-2 flex-shrink-0 separator-soft-b overflow-x-auto">
             {CATEGORY_TABS.map(tab => {
               const count = tab.value === 'all'
-                ? MOCK_DOCS.length
-                : MOCK_DOCS.filter(d => d.category === tab.value).length
+                ? DOCS.length
+                : DOCS.filter(d => d.category === tab.value).length
               return (
                 <button
                   key={tab.value}
