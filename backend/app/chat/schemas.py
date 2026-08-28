@@ -12,6 +12,7 @@ class ChatResponse(BaseModel):
     sources: list[str] = []
     tool_calls_made: list[str] = []
     trace_url: str | None = None  # null until MLflow Tracing is wired (Sprint 1.3)
+    retrieved_context: list[str] = []  # actual retrieved doc chunks; used by eval FaithfulnessMetric
 
 
 class ChatSessionSummary(BaseModel):

@@ -88,4 +88,5 @@ async def chat(request: ChatRequest, db: AsyncSession) -> ChatResponse:
         sources=result.get("doc_sources", []),
         tool_calls_made=result.get("tool_calls_made", []),
         trace_url=trace_url,
+        retrieved_context=result.get("retrieved_docs", []),
     )
