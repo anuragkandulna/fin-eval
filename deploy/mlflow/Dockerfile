@@ -1,5 +1,6 @@
-FROM python:3.12
-RUN pip install --no-cache-dir mlflow==2.14.3
+FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+RUN uv pip install --system mlflow==2.22.5
 EXPOSE 5000
 CMD ["mlflow", "server", \
      "--backend-store-uri", "sqlite:////mlflow/mlflow.db", \
