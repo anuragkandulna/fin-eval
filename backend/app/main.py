@@ -13,9 +13,11 @@ from app.chat.router import router as chat_router
 from app.analyse.router import router as analyse_router
 from app.documents.router import router as documents_router
 from app.health.router import router as health_router
+from app.profile.router import router as profile_router
 
 # Import models so SQLModel.metadata.create_all picks them up
-import app.chat.models  # noqa: F401
+import app.chat.models     # noqa: F401
+import app.profile.models  # noqa: F401
 
 import structlog
 
@@ -27,11 +29,14 @@ async def lifespan(app: FastAPI):
     logger.info("starting_fineval_api")
     await init_db()
 
-    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
-    mlflow.set_experiment(settings.mlflow_experiment)
-    mlflow.langchain.autolog()
+    try:
+        mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+        mlflow.set_experiment(settings.mlflow_experiment)
+        mlflow.langchain.autolog(log_traces=False)
+    except Exception:
+        logger.warning("mlflow_unavailable", uri=settings.mlflow_tracking_uri)
 
-    docs_dir = "/app/data/finance_docs"
+    docs_dir = "/app/backend/data/finance_docs"
     if os.path.exists(docs_dir):
         try:
             count = get_vectorstore().client.count(settings.qdrant_collection).count
@@ -74,3 +79,4 @@ app.include_router(chat_router)
 app.include_router(analyse_router)
 app.include_router(documents_router)
 app.include_router(health_router)
+app.include_router(profile_router)
