@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconEdit, IconSend, IconX, IconPlus, IconMessage, IconHistory } from '@tabler/icons-react'
 import { useChat, type ChatMessage } from '../contexts/ChatContext'
+import { sendChat } from '../api/client'
 
 interface Props {
   onClose?: () => void
@@ -55,10 +56,8 @@ const CHAT_SESSIONS: { id: string; title: string; timestamp: string; preview: st
   },
 ]
 
-async function mockSend(message: string): Promise<string> {
-  await new Promise(r => setTimeout(r, 800))
-  return `Backend not connected yet. You asked: "${message}". See docs/api-endpoints.md for the /chat endpoint spec.`
-}
+let _sessionCounter = 0
+const PANEL_SESSION_ID = `panel-${++_sessionCounter}-${Date.now()}`
 
 type Tab = 'chat' | 'history'
 
@@ -87,8 +86,10 @@ export default function ChatPanel({ onClose }: Props) {
     setMessages(prev => [...prev, { id: String(Date.now()), role: 'user', text: msg }])
     setLoading(true)
     try {
-      const reply = await mockSend(msg)
-      setMessages(prev => [...prev, { id: String(Date.now() + 1), role: 'assistant', text: reply }])
+      const res = await sendChat({ message: msg, session_id: PANEL_SESSION_ID, context_docs: [] })
+      setMessages(prev => [...prev, { id: String(Date.now() + 1), role: 'assistant', text: res.response }])
+    } catch {
+      setMessages(prev => [...prev, { id: String(Date.now() + 1), role: 'assistant', text: 'Something went wrong. Please try again.' }])
     } finally {
       setLoading(false)
     }
