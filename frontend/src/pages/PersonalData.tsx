@@ -1,5 +1,6 @@
 import { useState, type ElementType, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery }    from '@tanstack/react-query'
 import {
   IconUser,
   IconBriefcase,
@@ -12,6 +13,15 @@ import {
   IconChevronDown,
   IconFile,
 } from '@tabler/icons-react'
+import { getPersonalData }  from '../api/client'
+import type {
+  FinancialGoal,
+  SalaryCredit,
+  BudgetCategoryData,
+  UserProfileData,
+  TaxSummary,
+} from '../api/client'
+import { formatINR } from '../utils/currency'
 
 function Section({ title, icon: Icon, children }: { title: string; icon: ElementType; children: ReactNode }) {
   return (
@@ -34,14 +44,7 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
   )
 }
 
-/* ── Financial goals ─────────────────────────────────────────── */
-const GOALS = [
-  { name: 'Emergency fund',    target: 240000,  saved: 120000,  horizon: '12 months' },
-  { name: 'Vacation — Bali',   target: 50000,   saved: 18500,   horizon: '6 months'  },
-  { name: 'Home down payment', target: 1200000, saved: 180000,  horizon: '5 years'   },
-]
-
-function GoalCard({ goal }: { goal: typeof GOALS[0] }) {
+function GoalCard({ goal }: { goal: FinancialGoal }) {
   const pct = Math.round((goal.saved / goal.target) * 100)
   return (
     <div className="py-2.5" style={{ borderBottom: '0.5px solid var(--color-border)' }}>
@@ -60,33 +63,35 @@ function GoalCard({ goal }: { goal: typeof GOALS[0] }) {
   )
 }
 
-/* ── Salary credit log ───────────────────────────────────────── */
-interface SalaryRow {
-  month:    string
-  expected: string
-  credited: string
-  amount:   string
-  status:   'on-time' | 'late' | 'pending'
-  docId?:   string   // reference to Documents page doc
-}
-
-const SALARY_LOG: SalaryRow[] = [
-  { month: 'Jun 2026', expected: 'Jun 1', credited: 'Jun 1', amount: '₹80,000', status: 'on-time', docId: '5' },
-  { month: 'May 2026', expected: 'May 1', credited: 'May 2', amount: '₹80,000', status: 'late'                },
-  { month: 'Apr 2026', expected: 'Apr 1', credited: 'Apr 1', amount: '₹80,000', status: 'on-time'             },
-  { month: 'Mar 2026', expected: 'Mar 1', credited: 'Mar 1', amount: '₹82,000', status: 'on-time'             },
-  { month: 'Feb 2026', expected: 'Feb 1', credited: 'Feb 3', amount: '₹80,000', status: 'late'                },
-  { month: 'Jan 2026', expected: 'Jan 1', credited: 'Jan 1', amount: '₹80,000', status: 'on-time'             },
-]
-
-const STATUS_STYLE: Record<SalaryRow['status'], { cls: string; label: string }> = {
+type Status = 'on-time' | 'late' | 'pending'
+const STATUS_STYLE: Record<Status, { cls: string; label: string }> = {
   'on-time': { cls: 'status-pass', label: '✓ On time' },
   'late':    { cls: 'status-warn', label: '⚠ Late'    },
   'pending': { cls: 'status-run',  label: '· Pending'  },
 }
 
-/* ── Category budget tracker ─────────────────────────────────── */
-const BUDGET_CATS = [
+// ── Fallback data (shown while loading or if seed not run) ──────────────────
+
+const FALLBACK_PROFILE: UserProfileData = {
+  full_name: 'John Doe', city: 'Bangalore, KA', employer: 'TechCorp Pvt Ltd',
+  take_home_monthly: 80000, annual_ctc: 1440000,
+  next_credit_date: 'Jul 1, 2026', tax_regime: 'New regime · FY 2025-26',
+}
+const FALLBACK_TAX: TaxSummary = { gross_annual: 1440000, standard_deduction: 75000, net_taxable: 1365000, tax_with_cess: 91666 }
+const FALLBACK_GOALS: FinancialGoal[] = [
+  { name: 'Emergency fund',    target: 240000,  saved: 120000, horizon: '12 months' },
+  { name: 'Vacation — Bali',   target: 50000,   saved: 18500,  horizon: '6 months'  },
+  { name: 'Home down payment', target: 1200000, saved: 180000, horizon: '5 years'   },
+]
+const FALLBACK_SALARY: SalaryCredit[] = [
+  { month: 'Jun 2026', expected_date: 'Jun 1', credited_date: 'Jun 1', amount: 80000, status: 'on-time', doc_id: 'salary_slip_june' },
+  { month: 'May 2026', expected_date: 'May 1', credited_date: 'May 2', amount: 80000, status: 'late',    doc_id: null },
+  { month: 'Apr 2026', expected_date: 'Apr 1', credited_date: 'Apr 1', amount: 80000, status: 'on-time', doc_id: null },
+  { month: 'Mar 2026', expected_date: 'Mar 1', credited_date: 'Mar 1', amount: 82000, status: 'on-time', doc_id: null },
+  { month: 'Feb 2026', expected_date: 'Feb 1', credited_date: 'Feb 3', amount: 80000, status: 'late',    doc_id: null },
+  { month: 'Jan 2026', expected_date: 'Jan 1', credited_date: 'Jan 1', amount: 80000, status: 'on-time', doc_id: null },
+]
+const FALLBACK_BUDGET: BudgetCategoryData[] = [
   { name: 'Housing',       budget: 25000, spent: 25000 },
   { name: 'Food & dining', budget: 12000, spent: 9800  },
   { name: 'Transport',     budget: 5000,  spent: 3200  },
@@ -96,20 +101,30 @@ const BUDGET_CATS = [
   { name: 'Savings / SIP', budget: 16000, spent: 14400 },
 ]
 
-/* ── Main page ───────────────────────────────────────────────── */
 export default function PersonalData() {
   const [logExpanded, setLogExpanded] = useState(true)
   const navigate = useNavigate()
+
+  const { data } = useQuery({
+    queryKey: ['personal'],
+    queryFn:  getPersonalData,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const profile    = data?.profile      ?? FALLBACK_PROFILE
+  const tax        = data?.tax_summary   ?? FALLBACK_TAX
+  const goals      = data?.goals         ?? FALLBACK_GOALS
+  const salary     = data?.salary_credits ?? FALLBACK_SALARY
+  const budgetCats = data?.budget_categories ?? FALLBACK_BUDGET
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto">
       <div className="min-h-full px-5 py-5 flex flex-col gap-5">
 
-        {/* Page title */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-base font-semibold text-ink">Personal data</h1>
-            <p className="text-xs text-secondary mt-0.5">FY 2025–26 · New tax regime</p>
+            <p className="text-xs text-secondary mt-0.5">FY 2025–26 · {profile.tax_regime}</p>
           </div>
           <button className="px-3 py-1.5 text-sm text-secondary rounded-md hover:bg-brand-tint transition-colors border-thin">
             Edit profile
@@ -118,35 +133,31 @@ export default function PersonalData() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          {/* Profile */}
           <Section title="Profile" icon={IconUser}>
-            <Row label="Full name"   value="Anurag Kandulna" />
-            <Row label="City"        value="Bangalore, KA" />
-            <Row label="Tax regime"  value="New regime · FY 2025-26" />
+            <Row label="Full name"  value={profile.full_name} />
+            <Row label="City"       value={profile.city} />
+            <Row label="Tax regime" value={profile.tax_regime} />
           </Section>
 
-          {/* Income */}
           <Section title="Income" icon={IconBriefcase}>
-            <Row label="Take-home"       value="₹80,000 / month" mono />
-            <Row label="Annual CTC"      value="₹14,40,000"      mono />
-            <Row label="Employer"        value="TechCorp Pvt Ltd" />
-            <Row label="Next credit"     value="Jul 1, 2026" />
+            <Row label="Take-home"   value={`${formatINR(profile.take_home_monthly)} / month`} mono />
+            <Row label="Annual CTC"  value={formatINR(profile.annual_ctc)}                      mono />
+            <Row label="Employer"    value={profile.employer} />
+            <Row label="Next credit" value={profile.next_credit_date} />
           </Section>
 
-          {/* Financial goals */}
           <Section title="Financial goals" icon={IconTarget}>
-            {GOALS.map(g => <GoalCard key={g.name} goal={g} />)}
+            {goals.map(g => <GoalCard key={g.name} goal={g} />)}
           </Section>
 
-          {/* Tax summary — new regime only */}
-          <Section title="Tax summary — New regime FY 2025-26" icon={IconReceipt}>
+          <Section title={`Tax summary — ${profile.tax_regime}`} icon={IconReceipt}>
             <div className="flex flex-col gap-1.5">
-              <Row label="Gross annual income"    value="₹14,40,000" mono />
-              <Row label="Standard deduction"     value="− ₹75,000"  mono />
-              <Row label="Net taxable income"     value="₹13,65,000" mono />
+              <Row label="Gross annual income" value={formatINR(tax.gross_annual)}                         mono />
+              <Row label="Standard deduction"  value={`− ${formatINR(tax.standard_deduction)}`}           mono />
+              <Row label="Net taxable income"  value={formatINR(tax.net_taxable)}                          mono />
               <div className="flex justify-between items-center py-1.5 mt-1" style={{ borderTop: '0.5px solid var(--color-border)' }}>
                 <span className="text-xs font-medium text-ink">Tax + 4% cess</span>
-                <span className="text-xs font-mono font-semibold text-ink">≈ ₹91,666</span>
+                <span className="text-xs font-mono font-semibold text-ink">≈ {formatINR(tax.tax_with_cess)}</span>
               </div>
               <p className="text-[11px] text-secondary mt-1 leading-snug">
                 New regime: standard deduction only. No 80C / HRA / other deductions applicable.
@@ -163,7 +174,7 @@ export default function PersonalData() {
             onClick={() => setLogExpanded(p => !p)}
           >
             {logExpanded ? <IconChevronUp size={12} stroke={2} /> : <IconChevronDown size={12} stroke={2} />}
-            {logExpanded ? 'Collapse' : 'Expand'} · 6 months
+            {logExpanded ? 'Collapse' : 'Expand'} · {salary.length} months
           </button>
 
           {logExpanded && (
@@ -183,34 +194,37 @@ export default function PersonalData() {
                   </tr>
                 </thead>
                 <tbody>
-                  {SALARY_LOG.map(row => (
-                    <tr key={row.month} className="hover:bg-brand-tint transition-colors">
-                      <td className="py-2 pr-4 text-ink font-medium">{row.month}</td>
-                      <td className="py-2 pr-4 text-secondary font-mono">{row.expected}</td>
-                      <td className="py-2 pr-4 font-mono text-ink">{row.credited}</td>
-                      <td className="py-2 pr-4 font-mono text-ink">{row.amount}</td>
-                      <td className="py-2 pr-4">
-                        <span className={`rounded px-1.5 py-0.5 font-medium ${STATUS_STYLE[row.status].cls}`} style={{ fontSize: 10 }}>
-                          {STATUS_STYLE[row.status].label}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-4">
-                        {row.docId ? (
-                          <button
-                            data-testid={`salary-doc-${row.month}`}
-                            onClick={() => navigate(`/documents?highlight=${row.docId}`)}
-                            className="flex items-center gap-1 text-brand hover:opacity-70 transition-opacity"
-                            title="View salary slip"
-                          >
-                            <IconFile size={12} stroke={1.6} />
-                            <span style={{ fontSize: 10 }}>View</span>
-                          </button>
-                        ) : (
-                          <span className="text-secondary" style={{ fontSize: 10 }}>—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {salary.map(row => {
+                    const st = STATUS_STYLE[row.status as Status] ?? STATUS_STYLE['pending']
+                    return (
+                      <tr key={row.month} className="hover:bg-brand-tint transition-colors">
+                        <td className="py-2 pr-4 text-ink font-medium">{row.month}</td>
+                        <td className="py-2 pr-4 text-secondary font-mono">{row.expected_date}</td>
+                        <td className="py-2 pr-4 font-mono text-ink">{row.credited_date}</td>
+                        <td className="py-2 pr-4 font-mono text-ink">{formatINR(row.amount)}</td>
+                        <td className="py-2 pr-4">
+                          <span className={`rounded px-1.5 py-0.5 font-medium ${st.cls}`} style={{ fontSize: 10 }}>
+                            {st.label}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4">
+                          {row.doc_id ? (
+                            <button
+                              data-testid={`salary-doc-${row.month}`}
+                              onClick={() => navigate(`/documents?highlight=${row.doc_id}`)}
+                              className="flex items-center gap-1 text-brand hover:opacity-70 transition-opacity"
+                              title="View salary slip"
+                            >
+                              <IconFile size={12} stroke={1.6} />
+                              <span style={{ fontSize: 10 }}>View</span>
+                            </button>
+                          ) : (
+                            <span className="text-secondary" style={{ fontSize: 10 }}>—</span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -220,7 +234,7 @@ export default function PersonalData() {
         {/* Monthly budget tracker */}
         <Section title="Budget by category — Jun 2026" icon={IconTarget}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {BUDGET_CATS.map(cat => {
+            {budgetCats.map(cat => {
               const pct      = Math.round((cat.spent / cat.budget) * 100)
               const over     = pct > 100
               const barColor = over ? 'var(--color-fail)' : pct > 85 ? 'var(--color-warn)' : 'var(--color-brand)'
@@ -249,7 +263,6 @@ export default function PersonalData() {
         </Section>
 
       </div>
-
     </div>
   )
 }

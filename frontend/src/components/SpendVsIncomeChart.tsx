@@ -1,4 +1,10 @@
-const DATA = [
+export interface SpendVsIncomePoint {
+  month: string
+  income: number
+  spend: number
+}
+
+const DEFAULT_DATA: SpendVsIncomePoint[] = [
   { month: 'Jan', income: 80000, spend: 62000 },
   { month: 'Feb', income: 80000, spend: 58400 },
   { month: 'Mar', income: 82000, spend: 71200 },
@@ -15,27 +21,32 @@ const PAD_T = 14
 const PAD_B = 30
 const CHART_W = W - PAD_L - PAD_R
 const CHART_H = H - PAD_T - PAD_B
-const MAX_VAL = 90000
-const BAR_W   = Math.floor((CHART_W / DATA.length) * 0.36)
-const GROUP_W = CHART_W / DATA.length
 
 function fmt(v: number) {
   return v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`
 }
 
-function yPos(v: number) {
-  return PAD_T + CHART_H - (v / MAX_VAL) * CHART_H
+function yPos(v: number, maxVal: number) {
+  return PAD_T + CHART_H - (v / maxVal) * CHART_H
 }
 
-const Y_TICKS = [0, 20000, 40000, 60000, 80000]
+interface Props {
+  data?: SpendVsIncomePoint[]
+}
 
-export default function SpendVsIncomeChart() {
+export default function SpendVsIncomeChart({ data }: Props) {
+  const DATA = data ?? DEFAULT_DATA
+  const MAX_VAL = Math.ceil(Math.max(...DATA.map(d => d.income)) * 1.1 / 10000) * 10000
+  const BAR_W   = Math.floor((CHART_W / DATA.length) * 0.36)
+  const GROUP_W = CHART_W / DATA.length
+  const Y_TICKS = [0, MAX_VAL * 0.25, MAX_VAL * 0.5, MAX_VAL * 0.75, MAX_VAL].map(Math.round)
+
   return (
     <div data-testid="chart-spend-vs-income">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
         {/* Y-axis ticks */}
         {Y_TICKS.map(t => {
-          const y = yPos(t)
+          const y = yPos(t, MAX_VAL)
           return (
             <g key={t}>
               <line x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke="var(--color-border)" strokeWidth={0.5} />
@@ -50,7 +61,7 @@ export default function SpendVsIncomeChart() {
         {DATA.map((d, i) => {
           const cx   = PAD_L + i * GROUP_W + GROUP_W / 2
           const incH = (d.income / MAX_VAL) * CHART_H
-          const spdH = (d.spend  / MAX_VAL) * CHART_H
+          const spdH = (d.spend  / MAX_VAL)  * CHART_H
           return (
             <g key={d.month}>
               {/* Income bar */}

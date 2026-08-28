@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { uploadDocument } from '../api/client'
 import {
   IconX,
   IconAlertTriangle,
@@ -22,27 +23,11 @@ interface FileItem {
 }
 
 interface Props {
-  onClose: () => void
+  onClose:    () => void
+  onSuccess?: () => void
 }
 
-// POST /documents/upload — see docs/api-endpoints.md
-async function stubUploadFile(_file: File, onProgress: (p: number) => void): Promise<void> {
-  return new Promise(resolve => {
-    let p = 0
-    const iv = setInterval(() => {
-      p += Math.random() * 14 + 5
-      if (p >= 100) {
-        clearInterval(iv)
-        onProgress(100)
-        resolve()
-      } else {
-        onProgress(Math.min(p, 99))
-      }
-    }, 80)
-  })
-}
-
-export default function UploadModal({ onClose }: Props) {
+export default function UploadModal({ onClose, onSuccess }: Props) {
   const [files,      setFiles]      = useState<FileItem[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const inputRef   = useRef<HTMLInputElement>(null)
@@ -82,16 +67,16 @@ export default function UploadModal({ onClose }: Props) {
       prev.map(f => pending.find(p => p.id === f.id) ? { ...f, status: 'uploading' } : f)
     )
 
-    await Promise.all(pending.map(item =>
-      stubUploadFile(item.file, progress => {
-        setFiles(prev =>
-          prev.map(f => f.id === item.id
-            ? { ...f, progress, status: progress === 100 ? 'done' : 'uploading' }
-            : f
-          )
-        )
-      })
-    ))
+    await Promise.all(pending.map(async item => {
+      try {
+        await uploadDocument(item.file)
+        setFiles(prev => prev.map(f => f.id === item.id ? { ...f, progress: 100, status: 'done' } : f))
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Upload failed'
+        setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'error', error: msg } : f))
+      }
+    }))
+    onSuccess?.()
   }
 
   const canUpload = files.some(f => f.status === 'pending')

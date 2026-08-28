@@ -1,4 +1,5 @@
 import { IconAlertTriangle } from '@tabler/icons-react'
+import type { RecommendationItem } from '../api/client'
 
 interface Rec {
   color:   string
@@ -7,16 +8,32 @@ interface Rec {
   impact:  'high' | 'medium' | 'low'
 }
 
-const RECS: Rec[] = [
-  { color: 'var(--color-warn)',  title: 'Savings gap',     detail: 'Increase SIP by ₹2,000/month to hit 20% savings rate.',   impact: 'high'   },
-  { color: 'var(--color-pass)',  title: 'Debt on track',   detail: 'Credit card clears in 8 months at current EMI pace.',       impact: 'medium' },
-  { color: 'var(--color-brand)', title: 'Advance tax',     detail: 'Sept instalment due — set aside ≈ ₹22,900 by Sep 15.',   impact: 'high'   },
+const DEFAULT_RECS: Rec[] = [
+  { color: 'var(--color-warn)',  title: 'Savings gap',     detail: 'Increase SIP by ₹2,000/month to hit 20% savings rate.',  impact: 'high'   },
+  { color: 'var(--color-pass)',  title: 'Debt on track',   detail: 'Credit card clears in 8 months at current EMI pace.',     impact: 'medium' },
+  { color: 'var(--color-brand)', title: 'Advance tax',     detail: 'Sept instalment due — set aside ≈ ₹22,900 by Sep 15.', impact: 'high'   },
 ]
 
-const ALERTS = [
+const DEFAULT_ALERTS = [
   { text: 'Entertainment spend 22% above last week', color: 'var(--color-fail)' },
   { text: 'Emergency fund below 6-month target',     color: 'var(--color-warn)' },
 ]
+
+const DEFAULT_AI_INSIGHT =
+  'Your spend pattern is healthy overall, but entertainment is trending 22% above your 4-week average. ' +
+  'Redirecting ₹2,000/month there would close your savings gap and fund an ELSS top-up in one move.'
+
+const IMPACT_COLOR: Record<string, string> = {
+  high: 'var(--color-warn)',
+  medium: 'var(--color-pass)',
+  low: 'var(--color-brand)',
+}
+
+interface Props {
+  recs?:      RecommendationItem[]
+  alerts?:    RecommendationItem[]
+  aiInsight?: string
+}
 
 const IMPACT_BADGE: Record<Rec['impact'], string> = {
   high:   'status-fail',
@@ -24,7 +41,15 @@ const IMPACT_BADGE: Record<Rec['impact'], string> = {
   low:    'status-idle',
 }
 
-export default function Recommendations() {
+export default function Recommendations({ recs, alerts, aiInsight }: Props) {
+  const displayRecs = recs
+    ? recs.map(r => ({ title: r.title, detail: r.detail, impact: r.impact, color: IMPACT_COLOR[r.impact] ?? 'var(--color-brand)' }))
+    : DEFAULT_RECS
+  const displayAlerts = alerts
+    ? alerts.map(a => ({ text: a.title, color: a.impact === 'high' ? 'var(--color-fail)' : 'var(--color-warn)' }))
+    : DEFAULT_ALERTS
+  const insight = aiInsight ?? DEFAULT_AI_INSIGHT
+
   return (
     <div className="bg-card rounded-lg border-thin p-4 flex flex-col gap-4">
       <div className="flex items-center justify-end">
@@ -32,9 +57,9 @@ export default function Recommendations() {
       </div>
 
       {/* Threshold alerts */}
-      {ALERTS.length > 0 && (
+      {displayAlerts.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          {ALERTS.map(a => (
+          {displayAlerts.map(a => (
             <div key={a.text} className="flex items-center gap-2 rounded-md px-2.5 py-1.5" style={{ background: 'var(--color-snow)' }}>
               <IconAlertTriangle size={12} stroke={2} style={{ color: a.color, flexShrink: 0 }} />
               <span className="text-xs text-ink">{a.text}</span>
@@ -45,7 +70,7 @@ export default function Recommendations() {
 
       {/* Actionable items */}
       <div className="flex flex-col gap-3">
-        {RECS.map(r => (
+        {displayRecs.map(r => (
           <div key={r.title} data-testid={`rec-${r.title.toLowerCase().replace(/\s+/g, '-')}`} className="flex gap-3 items-start">
             <span
               className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
@@ -71,8 +96,7 @@ export default function Recommendations() {
       >
         <p className="text-xs text-ink leading-relaxed">
           <span className="font-semibold text-brand">AI insight · </span>
-          Your spend pattern is healthy overall, but entertainment is trending 22% above your 4-week average.
-          Redirecting ₹2,000/month there would close your savings gap and fund an ELSS top-up in one move.
+          {insight}
         </p>
       </div>
     </div>

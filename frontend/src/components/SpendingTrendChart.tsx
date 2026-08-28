@@ -1,14 +1,39 @@
-const DATA   = [38, 41, 40, 44, 47, 54]
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+export interface SpendTrendPoint {
+  month: string
+  spend: number
+}
+
+const DEFAULT_POINTS: SpendTrendPoint[] = [
+  { month: 'Jan', spend: 38000 },
+  { month: 'Feb', spend: 41000 },
+  { month: 'Mar', spend: 40000 },
+  { month: 'Apr', spend: 44000 },
+  { month: 'May', spend: 47000 },
+  { month: 'Jun', spend: 54000 },
+]
 
 const W = 500, H = 148
 const PL = 42, PR = 16, PT = 12, PB = 32
 const CW = W - PL - PR
 const CH = H - PT - PB
-const MIN = 35, MAX = 56
-const Y_TICKS = [35, 42, 49, 56]
 
-export default function SpendingTrendChart() {
+interface Props {
+  data?: SpendTrendPoint[]
+}
+
+export default function SpendingTrendChart({ data }: Props) {
+  const points = data ?? DEFAULT_POINTS
+  const MONTHS = points.map(p => p.month)
+  // Values in ₹k for chart scale
+  const DATA = points.map(p => Math.round(p.spend / 1000))
+  const rawMin = Math.min(...DATA)
+  const rawMax = Math.max(...DATA)
+  const pad = Math.max(2, Math.round((rawMax - rawMin) * 0.15))
+  const MIN = Math.max(0, rawMin - pad)
+  const MAX = rawMax + pad
+  const step = Math.ceil((MAX - MIN) / 3)
+  const Y_TICKS = [MIN, MIN + step, MIN + step * 2, MAX]
+
   const pts = DATA.map((v, i) => ({
     x: PL + (i / (DATA.length - 1)) * CW,
     y: PT + (1 - (v - MIN) / (MAX - MIN)) * CH,

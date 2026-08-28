@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { IconEdit, IconSend, IconX, IconPlus, IconMessage, IconHistory } from '@tabler/icons-react'
-import { useChat, type ChatMessage } from '../contexts/ChatContext'
+import { useChat } from '../contexts/ChatContext'
+import { sendChat, getChatSessions, getChatMessages } from '../api/client'
 
 interface Props {
   onClose?: () => void
@@ -21,43 +23,26 @@ const PAGE_PROMPTS: Record<string, string[]> = {
   '/reports':   ["Give me a monthly summary", "What changed since last month?", "Where can I save more?"],
 }
 
-const CHAT_SESSIONS: { id: string; title: string; timestamp: string; preview: string; seed: ChatMessage[] }[] = [
-  {
-    id: 'budget-review',
-    title: 'Budget review June',
-    timestamp: '2h ago',
-    preview: 'Your wants at 24% is eating into savings…',
-    seed: [
-      { id: 'b1', role: 'assistant', text: 'Hi Anurag. Health score is 74 — good, but savings rate is just below target. Want to close the gap?' },
-      { id: 'b2', role: 'user',      text: 'Why is my savings rate only 18%?' },
-      { id: 'b3', role: 'assistant', text: 'Your wants at 24% is eating into savings. Cut ₹2,000/month there to hit 20%.' },
-    ],
-  },
-  {
-    id: 'tax-summary',
-    title: 'New regime tax liability',
-    timestamp: '3 weeks ago',
-    preview: 'Your estimated tax is ₹91,666 this year…',
-    seed: [
-      { id: 't1', role: 'user',      text: 'How much tax will I pay this year?' },
-      { id: 't2', role: 'assistant', text: 'Under the new regime with your ₹14.4L CTC and ₹75,000 standard deduction, taxable income is ₹13.65L. Estimated tax including 4% cess: ₹91,666.' },
-    ],
-  },
-  {
-    id: 'debt-plan',
-    title: 'Credit card payoff plan',
-    timestamp: 'Yesterday',
-    preview: 'At your current EMI pace, you clear it in 8 months…',
-    seed: [
-      { id: 'd1', role: 'user',      text: 'How fast can I clear my credit card?' },
-      { id: 'd2', role: 'assistant', text: 'At your current EMI pace, you clear it in about 8 months. A ₹3,000 top-up would shorten that by roughly 6 weeks.' },
-    ],
-  },
-]
+function getOrCreateSessionId(): string {
+  try {
+    let id = localStorage.getItem('fineval_session_id')
+    if (!id) {
+      id = crypto.randomUUID()
+      localStorage.setItem('fineval_session_id', id)
+    }
+    return id
+  } catch {
+    return crypto.randomUUID()
+  }
+}
 
-async function mockSend(message: string): Promise<string> {
-  await new Promise(r => setTimeout(r, 800))
-  return `Backend not connected yet. You asked: "${message}". See docs/api-endpoints.md for the /chat endpoint spec.`
+function relativeTime(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime()
+  if (ms < 60_000)       return 'just now'
+  if (ms < 3_600_000)    return `${Math.round(ms / 60_000)}m ago`
+  if (ms < 86_400_000)   return `${Math.round(ms / 3_600_000)}h ago`
+  if (ms < 604_800_000)  return `${Math.round(ms / 86_400_000)}d ago`
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
 type Tab = 'chat' | 'history'
@@ -67,12 +52,20 @@ export default function ChatPanel({ onClose }: Props) {
   const [tab,       setTab]       = useState<Tab>('chat')
   const [input,     setInput]     = useState('')
   const [loading,   setLoading]   = useState(false)
-  const [activeId,  setActiveId]  = useState<string | null>('budget-review')
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const location  = useLocation()
+  const [activeId,  setActiveId]  = useState<string | null>(null)
+  const sessionIdRef = useRef<string>(getOrCreateSessionId())
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const location     = useLocation()
+  const queryClient  = useQueryClient()
 
   const pageName    = PAGE_CONTEXT[location.pathname] ?? 'Dashboard'
   const suggestions = PAGE_PROMPTS[location.pathname] ?? PAGE_PROMPTS['/']
+
+  const { data: sessions = [] } = useQuery({
+    queryKey: ['chatSessions'],
+    queryFn:  getChatSessions,
+    staleTime: 10_000,
+  })
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -87,21 +80,36 @@ export default function ChatPanel({ onClose }: Props) {
     setMessages(prev => [...prev, { id: String(Date.now()), role: 'user', text: msg }])
     setLoading(true)
     try {
-      const reply = await mockSend(msg)
-      setMessages(prev => [...prev, { id: String(Date.now() + 1), role: 'assistant', text: reply }])
+      const res = await sendChat({ message: msg, session_id: sessionIdRef.current, context_docs: [] })
+      setMessages(prev => [...prev, { id: String(Date.now() + 1), role: 'assistant', text: res.response }])
+      queryClient.invalidateQueries({ queryKey: ['chatSessions'] })
+    } catch {
+      setMessages(prev => [...prev, { id: String(Date.now() + 1), role: 'assistant', text: 'Something went wrong. Please try again.' }])
     } finally {
       setLoading(false)
     }
   }
 
-  const newChat = () => { setActiveId(null); setMessages([]) }
-
-  const openSession = (id: string) => {
-    const session = CHAT_SESSIONS.find(s => s.id === id)
-    if (!session) return
-    setActiveId(id)
-    setMessages(session.seed.map(m => ({ ...m })))
+  const newChat = () => {
+    const id = crypto.randomUUID()
+    try { localStorage.setItem('fineval_session_id', id) } catch { /* ignore */ }
+    sessionIdRef.current = id
+    setActiveId(null)
+    setMessages([])
     setTab('chat')
+  }
+
+  const openSession = async (sessionId: string) => {
+    try {
+      const msgs = await getChatMessages(sessionId)
+      sessionIdRef.current = sessionId
+      try { localStorage.setItem('fineval_session_id', sessionId) } catch { /* ignore */ }
+      setMessages(msgs.map(m => ({ id: m.created_at + m.role, role: m.role, text: m.content })))
+      setActiveId(sessionId)
+      setTab('chat')
+    } catch {
+      setTab('chat')
+    }
   }
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -283,24 +291,33 @@ export default function ChatPanel({ onClose }: Props) {
       {/* ── History tab ── */}
       {tab === 'history' && (
         <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2 min-h-0">
-          {CHAT_SESSIONS.map(session => (
-            <button
-              key={session.id}
-              data-testid={`chat-session-${session.id}`}
-              onClick={() => openSession(session.id)}
-              className={`w-full text-left rounded-xl px-4 py-3 transition-colors ${
-                activeId === session.id
-                  ? 'bg-brand-tint border-accent'
-                  : 'bg-snow border-thin hover:bg-brand-tint'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="text-sm font-medium text-ink leading-tight">{session.title}</p>
-                <span className="text-[11px] text-secondary flex-shrink-0">{session.timestamp}</span>
-              </div>
-              <p className="text-xs text-secondary leading-snug truncate">{session.preview}</p>
-            </button>
-          ))}
+          {sessions.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center gap-2 text-center px-4">
+              <IconHistory size={24} stroke={1.2} className="text-secondary" />
+              <p className="text-xs text-secondary">No conversations yet. Start chatting to build your history.</p>
+            </div>
+          ) : (
+            sessions.map(session => (
+              <button
+                key={session.session_id}
+                data-testid={`chat-session-${session.session_id}`}
+                onClick={() => openSession(session.session_id)}
+                className={`w-full text-left rounded-xl px-4 py-3 transition-colors ${
+                  activeId === session.session_id
+                    ? 'bg-brand-tint border-accent'
+                    : 'bg-snow border-thin hover:bg-brand-tint'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-sm font-medium text-ink leading-tight truncate">{session.title}</p>
+                  <span className="text-[11px] text-secondary flex-shrink-0">{relativeTime(session.updated_at)}</span>
+                </div>
+                {session.preview && (
+                  <p className="text-xs text-secondary leading-snug truncate">{session.preview}</p>
+                )}
+              </button>
+            ))
+          )}
         </div>
       )}
 
