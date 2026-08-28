@@ -36,7 +36,9 @@ async def analyse(request: AnalyseRequest) -> AnalyseResponse:
             "tool_calls_made":  [],
         })
     except openai.APIError as exc:
-        raise AgentInvocationError(str(exc)) from exc
+        raise AgentInvocationError(f"OpenAI error: {exc}") from exc
+    except Exception as exc:
+        raise AgentInvocationError(f"Agent error: {type(exc).__name__}: {exc}") from exc
 
     budget  = result.get("budget_result",  {})
     savings = result.get("savings_result", {})

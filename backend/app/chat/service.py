@@ -62,7 +62,11 @@ async def chat(request: ChatRequest, db: AsyncSession) -> ChatResponse:
             "tool_calls_made":  [],
         })
     except openai.APIError as exc:
-        raise AgentInvocationError(str(exc)) from exc
+        raise AgentInvocationError(f"OpenAI error: {exc}") from exc
+    except Exception as exc:
+        # Catches Qdrant, LangChain, LangGraph, and any other agent-layer failures.
+        # Re-raised as AgentInvocationError so the router surfaces a 500 with detail.
+        raise AgentInvocationError(f"Agent error: {type(exc).__name__}: {exc}") from exc
 
     final_response = result["final_response"]
     trace_url: str | None = None  # populated once MLflow Tracing is wired
