@@ -1,8 +1,24 @@
-const SEGMENTS = [
-  { label: 'Needs',   pct: 50, color: 'var(--color-brand)',       amount: '₹34,000' },
-  { label: 'Wants',   pct: 20, color: 'var(--color-warn)',        amount: '₹13,600' },
-  { label: 'Savings', pct: 18, color: 'var(--color-pass)',        amount: '₹12,240' },
-  { label: 'EMI',     pct: 12, color: 'var(--color-brand-light)', amount: '₹8,160'  },
+import { formatINR, formatINRCompact } from '../utils/currency'
+
+export interface DonutSegment {
+  label: string
+  pct: number
+  amount: number | null
+}
+
+const LABEL_COLOR: Record<string, string> = {
+  Needs:   'var(--color-brand)',
+  Wants:   'var(--color-warn)',
+  Savings: 'var(--color-pass)',
+  EMI:     'var(--color-brand-light)',
+}
+const DEFAULT_COLOR = 'var(--color-secondary)'
+
+const DEFAULT_SEGMENTS: DonutSegment[] = [
+  { label: 'Needs',   pct: 50, amount: 34000 },
+  { label: 'Wants',   pct: 20, amount: 13600 },
+  { label: 'Savings', pct: 18, amount: 12240 },
+  { label: 'EMI',     pct: 12, amount: 8160  },
 ]
 
 const CX = 64
@@ -17,7 +33,13 @@ function segPath(pct: number): string {
   return `${len} ${gap}`
 }
 
-export default function CategoryDonut() {
+interface Props {
+  segments?: DonutSegment[]
+}
+
+export default function CategoryDonut({ segments }: Props) {
+  const SEGMENTS = segments ?? DEFAULT_SEGMENTS
+  const total = SEGMENTS.reduce((s, seg) => s + (seg.amount ?? 0), 0)
   let cumulative = 0
 
   return (
@@ -37,6 +59,7 @@ export default function CategoryDonut() {
             />
 
             {SEGMENTS.map(seg => {
+              const color = LABEL_COLOR[seg.label] ?? DEFAULT_COLOR
               const dasharray = segPath(seg.pct)
               const dashoffset = -(cumulative / 100) * CIRC
               cumulative += seg.pct
@@ -45,7 +68,7 @@ export default function CategoryDonut() {
                   key={seg.label}
                   cx={CX} cy={CY} r={R}
                   fill="none"
-                  stroke={seg.color}
+                  stroke={color}
                   strokeWidth={R - INNER_R}
                   strokeDasharray={dasharray}
                   strokeDashoffset={dashoffset}
@@ -57,25 +80,27 @@ export default function CategoryDonut() {
 
             {/* Center label */}
             <text x={CX} y={CY - 5} textAnchor="middle" fontSize={10} fill="var(--color-secondary)">Total</text>
-            <text x={CX} y={CY + 9} textAnchor="middle" fontSize={12} fontWeight="600" fill="var(--color-ink)">₹68k</text>
+            <text x={CX} y={CY + 9} textAnchor="middle" fontSize={12} fontWeight="600" fill="var(--color-ink)">{formatINRCompact(total)}</text>
           </svg>
         </div>
 
         {/* Legend */}
         <div className="flex flex-col gap-2 flex-1 min-w-0 w-full">
-          {SEGMENTS.map(seg => (
+          {SEGMENTS.map(seg => {
+            const color = LABEL_COLOR[seg.label] ?? DEFAULT_COLOR
+            return (
             <div key={seg.label} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 min-w-0">
               <span
                 className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: seg.color }}
+                style={{ backgroundColor: color }}
               />
               <div className="min-w-0">
                 <span className="text-xs text-ink leading-tight break-words">{seg.label}</span>
-                <p className="text-[11px] text-secondary mt-0.5">{seg.amount}</p>
+                {seg.amount != null && <p className="text-[11px] text-secondary mt-0.5">{formatINR(seg.amount)}</p>}
               </div>
               <span className="text-xs font-medium text-ink flex-shrink-0">{seg.pct}%</span>
             </div>
-          ))}
+          )})</}
         </div>
       </div>
     </div>

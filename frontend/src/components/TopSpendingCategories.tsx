@@ -1,14 +1,21 @@
-const CATEGORIES = [
-  { name: 'Housing',       amount: 25000, pct: 37, wow:  0,  wowDir: 'flat' as const },
-  { name: 'Food & dining', amount: 9800,  pct: 14, wow:  8,  wowDir: 'up'   as const },
-  { name: 'Entertainment', amount: 6100,  pct: 9,  wow:  22, wowDir: 'up'   as const },
-  { name: 'Transport',     amount: 3200,  pct: 5,  wow: -11, wowDir: 'down' as const },
-  { name: 'Health',        amount: 2800,  pct: 4,  wow:  3,  wowDir: 'up'   as const },
+import type { TopCategory } from '../api/client'
+
+const DEFAULT_CATEGORIES: TopCategory[] = [
+  { name: 'Housing',       amount: 25000, pct: 37, wow:  0,  wow_dir: 'flat' },
+  { name: 'Food & dining', amount: 9800,  pct: 14, wow:  8,  wow_dir: 'up'   },
+  { name: 'Entertainment', amount: 6100,  pct: 9,  wow:  22, wow_dir: 'up'   },
+  { name: 'Transport',     amount: 3200,  pct: 5,  wow: -11, wow_dir: 'down' },
+  { name: 'Health',        amount: 2800,  pct: 4,  wow:  3,  wow_dir: 'up'   },
 ]
 
-const MAX_AMOUNT = CATEGORIES[0].amount
+interface Props {
+  categories?: TopCategory[]
+}
 
-export default function TopSpendingCategories() {
+export default function TopSpendingCategories({ categories }: Props) {
+  const CATEGORIES = categories ?? DEFAULT_CATEGORIES
+  const MAX_AMOUNT = CATEGORIES[0]?.amount ?? 1
+
   return (
     <div data-testid="chart-top-categories" className="bg-card rounded-lg border-thin p-4 flex flex-col gap-3 h-full">
       <p className="text-sm font-semibold text-ink">Top categories</p>
@@ -27,12 +34,12 @@ export default function TopSpendingCategories() {
                 <span className="text-xs text-ink break-words">{cat.name}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                {cat.wowDir !== 'flat' && (
+                {cat.wow_dir !== 'flat' && (
                   <span
-                    className={`text-[10px] font-medium ${cat.wowDir === 'up' ? 'text-fail' : 'text-pass'}`}
+                    className={`text-[10px] font-medium ${cat.wow_dir === 'up' ? 'text-fail' : 'text-pass'}`}
                     style={{ fontSize: 10 }}
                   >
-                    {cat.wowDir === 'up' ? '↑' : '↓'}{Math.abs(cat.wow)}%
+                    {cat.wow_dir === 'up' ? '↑' : '↓'}{Math.abs(cat.wow)}%
                   </span>
                 )}
                 <span className="text-xs font-mono text-ink">₹{(cat.amount / 1000).toFixed(0)}k</span>

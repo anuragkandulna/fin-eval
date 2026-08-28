@@ -18,7 +18,7 @@ interface ChatContextType {
 }
 
 const INITIAL: ChatMessage[] = [
-  { id: '1', role: 'assistant', text: 'Hi Anurag. Health score is 74 — good, but savings rate is just below target. Want to close the gap?' },
+  { id: '1', role: 'assistant', text: 'Hi John. Health score is 74 — good, but savings rate is just below target. Want to close the gap?' },
   { id: '2', role: 'user',      text: 'Why is my savings rate only 18%?' },
   { id: '3', role: 'assistant', text: 'Your wants at 24% is eating into savings. Cut ₹2,000/month there to hit 20%.' },
   { id: '4', role: 'user',      text: 'How much tax will I owe this year?' },

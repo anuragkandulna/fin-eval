@@ -29,7 +29,7 @@ const CHAT_SESSIONS: { id: string; title: string; timestamp: string; preview: st
     timestamp: '2h ago',
     preview: 'Your wants at 24% is eating into savings…',
     seed: [
-      { id: 'b1', role: 'assistant', text: 'Hi Anurag. Health score is 74 — good, but savings rate is just below target. Want to close the gap?' },
+      { id: 'b1', role: 'assistant', text: 'Hi John. Health score is 74 — good, but savings rate is just below target. Want to close the gap?' },
       { id: 'b2', role: 'user',      text: 'Why is my savings rate only 18%?' },
       { id: 'b3', role: 'assistant', text: 'Your wants at 24% is eating into savings. Cut ₹2,000/month there to hit 20%.' },
     ],

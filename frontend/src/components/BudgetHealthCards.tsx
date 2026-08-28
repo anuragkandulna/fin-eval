@@ -3,7 +3,7 @@ import { IconTrendingUp, IconTrendingDown, IconMinus } from '@tabler/icons-react
 type Trend = 'up' | 'down' | 'flat'
 type SubColor = 'pass' | 'warn' | 'fail' | 'secondary'
 
-interface MetricCard {
+export interface MetricCard {
   label:    string
   value:    string
   sub:      string
@@ -34,10 +34,15 @@ const TrendIcon = ({ trend }: { trend: Trend }) => {
   return                       <IconMinus         size={12} stroke={2} aria-hidden="true" />
 }
 
-export default function BudgetHealthCards() {
+interface Props {
+  cards?: MetricCard[]
+}
+
+export default function BudgetHealthCards({ cards }: Props) {
+  const metrics = cards ?? METRICS
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-      {METRICS.map(m => (
+      {metrics.map(m => (
         <div
           key={m.label}
           data-testid={m.testid}
