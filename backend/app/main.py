@@ -16,8 +16,9 @@ from app.health.router import router as health_router
 from app.profile.router import router as profile_router
 
 # Import models so SQLModel.metadata.create_all picks them up
-import app.chat.models     # noqa: F401
-import app.profile.models  # noqa: F401
+import app.chat.models      # noqa: F401
+import app.documents.models # noqa: F401
+import app.profile.models   # noqa: F401
 
 import structlog
 

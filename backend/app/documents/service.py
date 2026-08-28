@@ -2,8 +2,10 @@ import os
 import uuid
 
 from fastapi import UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.documents.schemas import DocumentResponse
+from app.documents import repo
 from app.exceptions import UnsupportedFileTypeError, DocumentIngestError
 from app.rag.ingest import ingest_file
 
@@ -13,7 +15,7 @@ ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx", ".csv"}
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-async def upload(file: UploadFile) -> DocumentResponse:
+async def upload(file: UploadFile, db: AsyncSession) -> DocumentResponse:
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise UnsupportedFileTypeError(
@@ -32,9 +34,12 @@ async def upload(file: UploadFile) -> DocumentResponse:
     except Exception as exc:
         raise DocumentIngestError(str(exc)) from exc
 
+    await repo.save_record(db, doc_id=doc_id, filename=file.filename or "", chunk_count=chunks)
+    await db.commit()
+
     return DocumentResponse(
         doc_id=doc_id,
         filename=file.filename or "",
         chunks=chunks,
-        status="processed",
+        status="indexed",
     )

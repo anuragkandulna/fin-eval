@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider }    from './contexts/ThemeContext'
 import { SidebarProvider }  from './contexts/SidebarContext'
 import { ChatProvider }     from './contexts/ChatContext'
@@ -106,16 +107,20 @@ function AppLayout() {
   )
 }
 
+const queryClient = new QueryClient()
+
 export default function App() {
   return (
-    <ThemeProvider>
-      <SidebarProvider>
-        <ChatProvider>
-          <BrowserRouter>
-            <AppLayout />
-          </BrowserRouter>
-        </ChatProvider>
-      </SidebarProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <SidebarProvider>
+          <ChatProvider>
+            <BrowserRouter>
+              <AppLayout />
+            </BrowserRouter>
+          </ChatProvider>
+        </SidebarProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   )
 }

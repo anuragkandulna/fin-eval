@@ -100,7 +100,8 @@ export default function CategoryDonut({ segments }: Props) {
               </div>
               <span className="text-xs font-medium text-ink flex-shrink-0">{seg.pct}%</span>
             </div>
-          )})</}
+          )})}
+
         </div>
       </div>
     </div>

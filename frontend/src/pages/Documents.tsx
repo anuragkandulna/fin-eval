@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
+import { useQuery, useQueryClient }  from '@tanstack/react-query'
 import {
   IconSearch,
   IconFilter,
@@ -13,6 +14,7 @@ import DocumentCard, { type Doc, type DocCategory } from '../components/Document
 import DocumentDetailPanel         from '../components/DocumentDetailPanel'
 import UploadModal                 from '../components/UploadModal'
 import { useMediaQuery }           from '../hooks/useMediaQuery'
+import { getDocuments, type DocumentListItem } from '../api/client'
 
 type FilterBy   = 'none' | 'size' | 'date-created' | 'date-modified'
 type SortDir    = 'default' | 'asc' | 'desc'
@@ -28,36 +30,43 @@ const CATEGORY_TABS: { value: ActiveCat; label: string }[] = [
   { value: 'investment',     label: 'Investments'     },
 ]
 
-const now = Date.now()
+function inferCategory(filename: string): DocCategory {
+  const l = filename.toLowerCase()
+  if (l.includes('salary') || l.includes('payslip') || l.includes('pay_slip')) return 'salary-slip'
+  if (l.includes('bank') || l.includes('statement'))                           return 'bank-statement'
+  if (l.includes('invoice') || l.includes('bill'))                             return 'invoice'
+  if (l.includes('tax') || l.includes('itr') || l.includes('form16') || l.includes('india_finance')) return 'tax-document'
+  if (l.includes('insur') || l.includes('policy'))                             return 'insurance'
+  if (l.includes('invest') || l.includes('mutual') || l.includes('savings'))  return 'investment'
+  return 'other'
+}
 
-const MOCK_DOCS: Doc[] = [
-  {
-    id: '1', name: 'budgeting_basics.txt',    size: '18.4 KB', sizeBytes: 18841,  type: 'TXT', chunks: 48, timestamp: '2h ago',   dateCreated: now - 7_200_000,  dateModified: now - 7_200_000,  status: 'indexed',    compressionRatio: 0.68, category: 'other',
-    aiExtract: { 'Topic': 'Budgeting fundamentals', 'Key rule': '50/30/20 framework', 'Sections': '12 chapters' },
-  },
-  {
-    id: '2', name: 'debt_management.txt',      size: '22.1 KB', sizeBytes: 22630,  type: 'TXT', chunks: 52, timestamp: '2h ago',   dateCreated: now - 7_300_000,  dateModified: now - 7_200_000,  status: 'indexed',    compressionRatio: 0.71, category: 'other',
-    aiExtract: { 'Topic': 'Debt repayment strategies', 'Methods covered': 'Avalanche, Snowball', 'Key stat': '23% avg DTI target' },
-  },
-  {
-    id: '3', name: 'savings_investing.txt',    size: '33.8 KB', sizeBytes: 34611,  type: 'TXT', chunks: 61, timestamp: '3h ago',   dateCreated: now - 10_800_000, dateModified: now - 10_800_000, status: 'indexed',    compressionRatio: 0.73, category: 'investment',
-    aiExtract: { 'Topic': 'Savings & investments', 'Instruments': 'MF, FD, NPS, PPF', 'Recommended rate': '20% of income' },
-  },
-  {
-    id: '4', name: 'india_finance_basics.txt', size: '26.3 KB', sizeBytes: 26931,  type: 'TXT', chunks: 71, timestamp: '3h ago',   dateCreated: now - 11_000_000, dateModified: now - 10_900_000, status: 'indexed',    compressionRatio: 0.69, category: 'tax-document',
-    aiExtract: { 'Topic': 'India personal finance', 'Covers': '80C, HRA, LTCG, ITR', 'Tax year': 'FY 2025-26' },
-  },
-  {
-    id: '5', name: 'salary_slip_june.pdf',     size: '34.8 KB', sizeBytes: 35635,  type: 'PDF', chunks: 12, timestamp: '1h ago',   dateCreated: now - 3_600_000,  dateModified: now - 3_600_000,  status: 'indexed',    compressionRatio: 0.62, category: 'salary-slip',
-    aiExtract: { 'Gross salary': '₹1,12,500', 'PF deduction': '₹13,500', 'TDS': '₹5,200', 'Net pay': '₹80,000' },
-  },
-  {
-    id: '6', name: 'bank_statement_q2.pdf',    size: '204 KB',  sizeBytes: 208896, type: 'PDF', chunks: 0,  timestamp: 'just now', dateCreated: now - 120_000,    dateModified: now - 60_000,     status: 'processing', compressionRatio: 0.58, category: 'bank-statement',
-  },
-]
+function relativeTime(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime()
+  if (ms < 60_000)         return 'just now'
+  if (ms < 3_600_000)      return `${Math.round(ms / 60_000)}m ago`
+  if (ms < 86_400_000)     return `${Math.round(ms / 3_600_000)}h ago`
+  return `${Math.round(ms / 86_400_000)}d ago`
+}
 
-const INDEXED_COUNT    = MOCK_DOCS.filter(d => d.status === 'indexed').length
-const PROCESSING_COUNT = MOCK_DOCS.filter(d => d.status === 'processing').length
+function apiToDoc(item: DocumentListItem): Doc {
+  const ext  = item.filename.split('.').pop()?.toUpperCase() ?? 'FILE'
+  const ts   = new Date(item.created_at).getTime()
+  return {
+    id:               item.doc_id,
+    name:             item.filename,
+    size:             '—',
+    sizeBytes:        0,
+    type:             ext,
+    chunks:           item.chunk_count,
+    timestamp:        relativeTime(item.created_at),
+    dateCreated:      ts,
+    dateModified:     ts,
+    status:           item.status,
+    compressionRatio: 0,
+    category:         inferCategory(item.filename),
+  }
+}
 
 const FILTER_OPTIONS: { value: FilterBy; label: string }[] = [
   { value: 'none',          label: 'Default' },
@@ -75,11 +84,22 @@ export default function Documents() {
   const [uploadOpen,    setUploadOpen]   = useState(false)
   const [activeCat,     setActiveCat]    = useState<ActiveCat>('all')
 
+  const queryClient = useQueryClient()
+  const { data: apiDocs = [] } = useQuery({
+    queryKey: ['documents'],
+    queryFn:  getDocuments,
+    staleTime: 30_000,
+  })
+  const DOCS: Doc[] = apiDocs.map(apiToDoc)
+
+  const INDEXED_COUNT    = DOCS.filter(d => d.status === 'indexed').length
+  const PROCESSING_COUNT = DOCS.filter(d => d.status === 'processing').length
+
   const filterBtnRef = useRef<HTMLDivElement>(null)
   const isPhone         = useMediaQuery('(max-width: 767px)')
   const useOverlayDrawer = useMediaQuery('(max-width: 1480px)')
 
-  const selectedDoc = selectedId ? MOCK_DOCS.find(d => d.id === selectedId) ?? null : null
+  const selectedDoc = selectedId ? DOCS.find(d => d.id === selectedId) ?? null : null
   const detailOpen  = !!selectedDoc
 
   const closeDetail = () => setSelectedId(null)
@@ -90,7 +110,7 @@ export default function Documents() {
   const SortIcon = sortDir === 'asc' ? IconArrowUp : sortDir === 'desc' ? IconArrowDown : IconArrowsSort
 
   const filtered = useMemo(() => {
-    const base = MOCK_DOCS.filter(d => {
+    const base = DOCS.filter(d => {
       const matchesQuery = !query.trim() || d.name.toLowerCase().includes(query.toLowerCase())
       const matchesCat   = activeCat === 'all' || d.category === activeCat
       return matchesQuery && matchesCat
@@ -109,7 +129,7 @@ export default function Documents() {
       const diff = getVal(a) - getVal(b)
       return sortDir === 'desc' ? -diff : diff
     })
-  }, [query, activeCat, filterBy, sortDir])
+  }, [DOCS, query, activeCat, filterBy, sortDir])
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
@@ -338,7 +358,12 @@ export default function Documents() {
         ) : null}
       </div>
 
-      {uploadOpen && <UploadModal onClose={() => setUploadOpen(false)} />}
+      {uploadOpen && (
+        <UploadModal
+          onClose={() => setUploadOpen(false)}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['documents'] })}
+        />
+      )}
     </div>
   )
 }

@@ -68,6 +68,17 @@ export const uploadDocument = (file: File) => {
   return api.post<DocumentResponse>('/documents/upload', form).then(r => r.data)
 }
 
+export interface DocumentListItem {
+  doc_id: string
+  filename: string
+  chunk_count: number
+  status: 'indexed' | 'processing'
+  created_at: string  // ISO 8601 UTC
+}
+
+export const getDocuments = () =>
+  api.get<DocumentListItem[]>('/documents/list').then(r => r.data)
+
 // ── Dashboard ──────────────────────────────────────────────────────────────
 
 export interface BudgetHealthData {

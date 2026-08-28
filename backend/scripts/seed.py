@@ -16,8 +16,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import engine, AsyncSessionLocal
 import app.chat.models       # noqa: F401 — register ChatSession / ChatMessage
+import app.documents.models  # noqa: F401 — register DocumentRecord
 import app.profile.models    # noqa: F401 — register all profile tables
 
+from app.documents.models import DocumentRecord
 from app.profile.models import (
     UserProfile,
     BudgetHealthSnapshot,
@@ -32,6 +34,13 @@ from app.profile.models import (
 
 
 # ── Seed data ──────────────────────────────────────────────────────────────────
+
+BASELINE_DOCS = [
+    DocumentRecord(doc_id="budgeting_basics_txt",    filename="budgeting_basics.txt",    chunk_count=48, status="indexed"),
+    DocumentRecord(doc_id="debt_management_txt",     filename="debt_management.txt",     chunk_count=52, status="indexed"),
+    DocumentRecord(doc_id="savings_investing_txt",   filename="savings_investing.txt",   chunk_count=61, status="indexed"),
+    DocumentRecord(doc_id="india_finance_basics_txt",filename="india_finance_basics.txt",chunk_count=71, status="indexed"),
+]
 
 PROFILE = UserProfile(
     full_name="John Doe",
@@ -153,7 +162,7 @@ async def _clear(db: AsyncSession) -> None:
     tables = [
         RecommendationItem, BudgetCategory, SalaryCredit, FinancialGoal,
         TopSpendCategory, SpendSegment, MonthlyMetric,
-        BudgetHealthSnapshot, UserProfile,
+        BudgetHealthSnapshot, UserProfile, DocumentRecord,
     ]
     for model in tables:
         rows = (await db.execute(select(model))).scalars().all()
@@ -166,12 +175,12 @@ async def _clear(db: AsyncSession) -> None:
 async def _insert(db: AsyncSession) -> None:
     db.add(PROFILE)
     db.add(HEALTH)
-    for row in [*MONTHLY, *SEGMENTS, *TOP_CATS, *GOALS, *SALARY, *BUDGET_CATS, *RECS]:
+    for row in [*BASELINE_DOCS, *MONTHLY, *SEGMENTS, *TOP_CATS, *GOALS, *SALARY, *BUDGET_CATS, *RECS]:
         db.add(row)
     await db.flush()
-    print(f"  Inserted: 1 profile, 1 health snapshot, {len(MONTHLY)} monthly metrics, "
-          f"{len(SEGMENTS)} segments, {len(TOP_CATS)} top categories, {len(GOALS)} goals, "
-          f"{len(SALARY)} salary credits, {len(BUDGET_CATS)} budget categories, {len(RECS)} recs.")
+    print(f"  Inserted: {len(BASELINE_DOCS)} baseline docs, 1 profile, 1 health snapshot, "
+          f"{len(MONTHLY)} monthly metrics, {len(SEGMENTS)} segments, {len(TOP_CATS)} top categories, "
+          f"{len(GOALS)} goals, {len(SALARY)} salary credits, {len(BUDGET_CATS)} budget categories, {len(RECS)} recs.")
 
 
 if __name__ == "__main__":
